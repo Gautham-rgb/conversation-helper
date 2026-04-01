@@ -26,4 +26,4 @@ git clone https://github.com
 cd conversation-helper
 // rename config.py.example as config.py
 pip install -r requirements.txt
-python GUI.py
+python GUI_convo/GUI.py
