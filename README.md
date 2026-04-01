@@ -15,10 +15,15 @@ No more cryptic Python crashes. When things go sideways, our custom **Error Engi
 
 ## 🚀 Getting Started
 
+### 🛠️ System Requirements
+- **Python 3.10+**
+- **FFmpeg** (Required for audio processing via `pydub`)
+
 ### Installation
 Clone the repository and step into a cleaner workflow:
 ```bash
 git clone https://github.com
 cd conversation-helper
+// rename config.py.example as config.py
 pip install -r requirements.txt
 python GUI.py
