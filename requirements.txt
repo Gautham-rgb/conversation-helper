@@ -1,0 +1,14 @@
+# GUI & Styling
+ttkbootstrap
+
+# AI & API
+groq
+
+# Audio Processing & TTS
+pyttsx3
+pydub
+sounddevice
+soundfile
+
+# Scientific Computing
+numpy
