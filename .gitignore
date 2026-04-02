@@ -6,6 +6,12 @@ __pycache__/
 # C extensions
 *.so
 
+#storage formats
+*.pkl
+*.keras
+*.npz
+*.h5
+
 # Distribution / packaging
 .Python
 build/
