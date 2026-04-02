@@ -24,6 +24,6 @@ Clone the repository and step into a cleaner workflow:
 ```bash
 git clone https://github.com
 cd conversation-helper
-// rename config.py.example as config.py
+mv "config.py.example" "config.py"
 pip install -r requirements.txt
 python GUI_convo/GUI.py
