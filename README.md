@@ -1,15 +1,17 @@
 # conversation-helper
-**A minimal, distraction-free companion for your LLM workflows.**
+**Stop overthinking your chats. A distraction-free companion for real-time social insights..**
 ---
 
 ## ✨ The Experience
-Conversation Helper isn't just a wrapper; it’s a refined interface designed to manage your AI context without the clutter. 
+Conversation Helper isn't just a wrapper; it’s a refined interface designed to manage your conversations, preventing problems that even the greatest extroverts may face. 
 
 ### 🛡️ Graceful Error Handling
 No more cryptic Python crashes. When things go sideways, our custom **Error Engine** translates technical mess into human-readable solutions.
 *   **Intelligent Mapping:** Standardized error codes (e.g., `E-401`, `E-NO-PASS`) for instant troubleshooting.
 *   **One-Click Recovery:** Integrated "Restart" logic to refresh your session in a heartbeat.
 *   **Human-Centric Design:** Error messages that actually make sense (and a few that might make you laugh).
+*   and lastly, then reason this was made:
+  *   to help you to give your points, ideas and plans like an absolute Extrovert.
 
 ---
 
