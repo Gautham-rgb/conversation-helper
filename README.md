@@ -27,3 +27,9 @@ cd conversation-helper
 mv "config.py.example" "config.py"
 pip install -r requirements.txt
 python GUI_convo/GUI.py
+```
+---
+
+### Contact
+if there is any problem or feedback that has to be fixed or given, please contact: [kaarthikgautham0@gmail.com](mailto:kaarthikgautham0@gmail.com) 
+or [gautitheexplorer@gmail.com](mailto:gautitheexplorer@gmail.com)
