@@ -1,8 +1,13 @@
 # GUI & Styling
 ttkbootstrap
+tkinter
 
 # AI & API
 groq
+openai-whisper
+keras
+keras_hub
+torch
 
 # Audio Processing & TTS
 pyttsx3
@@ -12,3 +17,5 @@ soundfile
 
 # Scientific Computing
 numpy
+scipy
+
