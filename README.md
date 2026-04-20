@@ -27,6 +27,7 @@ Clone the repository and step into a cleaner workflow:
 git clone https://github.com
 cd conversation-helper
 pip install -r requirements.txt
+python "import os;os.environ['KERAS_BACKEND'] = 'torch'"
 python GUI_convo/GUI.py
 ```
 ---
