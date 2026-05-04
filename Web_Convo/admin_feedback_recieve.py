@@ -4,7 +4,7 @@ from app import back_button, shell
 from feedback import _load_feedback  # Assuming your feedback logic is in feedback.py
 
 # Set your admin password here
-ADMIN_PASSWORD = "admin" 
+ADMIN_PASSWORD = "ipthisaddress" 
 
 @ui.page("/admin")
 def admin_page() -> None:
