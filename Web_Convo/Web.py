@@ -11,6 +11,8 @@ import home
 import live_session
 import profile_page
 import update_profile
+import feedback
+
 
 
 @ui.page("/")

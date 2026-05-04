@@ -29,6 +29,9 @@ def home() -> None:
                     "color=positive"
                 )
                 ui.button("Ask All", icon="record_voice_over", on_click=lambda: ui.navigate.to("/all_pyfriend")).props(
+                    "color=success"
+                )
+                ui.button("Feedback", icon = "rate_review", on_click = lambda: ui.navigate.to("/feedback")).props(
                     "color=info"
                 )
 
