@@ -5,9 +5,8 @@ import asyncio
 from nicegui import ui
 
 from app import back_button, shell
-from CLI_convo.ai_part import suggest
-from CLI_convo.offline import ONLINE
 from CLI_convo.profile_storage import Profile
+from suggestions import suggest
 
 
 @ui.page("/live/{name}")
@@ -22,7 +21,7 @@ def live_session(name: str) -> None:
     with shell(f"Live: {profile.name}"):
         back_button(f"/profile/{profile.name}")
         ui.label(f"Live Session with {profile.name}").classes("text-3xl font-bold")
-        ui.label("Online Groq mode" if ONLINE else "Offline local mode").classes("text-slate-400")
+        ui.label("Online Groq mode").classes("text-slate-400")
 
         with ui.card().classes("w-full bg-[#151b22] rounded-lg p-5 gap-4"):
             situation = ui.textarea("Current situation").classes("w-full").props("outlined autogrow")

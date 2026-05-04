@@ -3,7 +3,6 @@ from __future__ import annotations
 from nicegui import ui
 
 from app import shell
-from CLI_convo.offline import ONLINE
 from CLI_convo.profile_storage import Profile
 
 
@@ -21,7 +20,7 @@ def home() -> None:
         with ui.row().classes("w-full items-start justify-between gap-4"):
             with ui.column().classes("gap-1"):
                 ui.label("People").classes("text-3xl font-bold")
-                mode = "Online Groq mode" if ONLINE else "Offline local mode"
+                mode = "Online Groq mode"
                 ui.label(f"{len(profiles)} saved profile{'s' if len(profiles) != 1 else ''} · {mode}").classes(
                     "text-slate-400"
                 )

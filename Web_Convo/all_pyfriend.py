@@ -5,15 +5,12 @@ import base64
 import os
 import tempfile
 
-from groq import AsyncGroq
 from nicegui import ui
 
 from app import back_button, shell
 from CLI_convo.config import api_key
-from CLI_convo.offline import CHAT_MODEL, ONLINE, WHISPER_MODEL, gemma_prompt, generate, transcribe_offline
 from CLI_convo.profile_storage import Profile
-
-client = AsyncGroq(api_key=api_key) if ONLINE else None
+from web_ai import complete, transcribe
 
 
 @ui.page("/all_pyfriend")
@@ -64,15 +61,7 @@ def all_pyfriend_page() -> None:
                     tmp.write(audio_data)
                     path = tmp.name
 
-                if ONLINE and client:
-                    with open(path, "rb") as audio_file:
-                        transcription = await client.audio.transcriptions.create(
-                            file=(path, audio_file.read()),
-                            model=WHISPER_MODEL,
-                        )
-                    text = transcription.text
-                else:
-                    text = await asyncio.to_thread(transcribe_offline, path)
+                text = await transcribe(path)
 
                 if not text:
                     ui.notify("No speech was transcribed.", type="warning")
@@ -137,14 +126,7 @@ async def _answer(user_text: str) -> str:
         "Give practical wording and one thing to avoid. No markdown bold."
     )
 
-    if ONLINE and client:
-        reply = await client.chat.completions.create(
-            model=CHAT_MODEL,
-            messages=[{"role": "system", "content": system}, {"role": "user", "content": user_text}],
-        )
-        return reply.choices[0].message.content or ""
-
-    return await asyncio.to_thread(generate, gemma_prompt(system, user_text), 512)
+    return await asyncio.to_thread(complete, system, user_text)
 
 
 def _speak(text: str) -> None:

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from CLI_convo.offline import GROQ_CHAT_MODEL, ONLINE, gemma_prompt, generate, groq_client
 from CLI_convo.profile_storage import Profile
+from web_ai import complete
 
 _EXTRACT_SYSTEM = (
     "Extract as much information as you can to make a personality profile. "
@@ -35,18 +35,7 @@ def build_profile(name: str, transcript: str, speaker_context: str = "") -> Prof
 
     profile = Profile.load(name) or Profile(name)
 
-    if ONLINE and groq_client:
-        response = groq_client.chat.completions.create(
-            model=GROQ_CHAT_MODEL,
-            messages=[
-                {"role": "system", "content": system},
-                {"role": "user", "content": f"Transcript:\n{transcript}"},
-            ],
-        )
-        text = response.choices[0].message.content or ""
-    else:
-        text = generate(gemma_prompt(system, f"Transcript:\n{transcript}"), max_length=400)
-
+    text = complete(system, f"Transcript:\n{transcript}")
     _parse_and_update(profile, text)
     profile.save()
     return profile
