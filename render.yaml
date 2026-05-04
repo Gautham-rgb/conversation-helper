@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: conversation-manager
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python Web_Convo/Web.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.10
+      - key: GROQ_API_KEY
+        sync: false

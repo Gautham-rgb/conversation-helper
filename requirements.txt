@@ -1,23 +1,5 @@
-# GUI & Styling
-ttkbootstrap
-tkinter
-nicegui
-contextlib
-
-# AI & API
-groq
-openai-whisper
-keras
-keras_hub
-torch
-
-# Audio Processing & TTS
-pyttsx3
-pydub
-sounddevice
-soundfile
-
-# Scientific Computing
-numpy
-scipy
-
+nicegui==2.24.2
+groq==1.2.0
+python-dotenv==1.2.2
+sounddevice==0.5.5
+scipy==1.17.1

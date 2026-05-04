@@ -207,7 +207,8 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 /media
-config.py
+CLI_convo/api_key.env
+CLI_convo/profiles.json
 # Marimo
 marimo/_static/
 marimo/_lsp/
