@@ -1,14 +1,12 @@
 from __future__ import annotations
-
 import json
 from datetime import datetime
 from pathlib import Path
 from nicegui import app, ui
 from app import back_button, shell
 
-# 1. Setup paths and constants
 FEEDBACK_PATH = Path(__file__).resolve().parent / "feedback.json"
-ADMIN_PASSWORD = "admin"  # Change this to your preferred password
+ADMIN_PASSWORD = "admin" 
 
 def _load_feedback() -> list[dict]:
     if not FEEDBACK_PATH.exists():
@@ -16,25 +14,18 @@ def _load_feedback() -> list[dict]:
     try:
         data = json.loads(FEEDBACK_PATH.read_text(encoding="utf-8"))
         return data if isinstance(data, list) else []
-    except json.JSONDecodeError:
+    except (json.JSONDecodeError, FileNotFoundError):
         return []
 
 def _delete_feedback(row: dict, table: ui.table) -> None:
-    """Removes a specific entry from the JSON file and updates the UI."""
     feedback = _load_feedback()
-    # Filter out the row using the timestamp (unique ID)
     new_feedback = [f for f in feedback if f.get('created_at') != row.get('created_at')]
-    
-    # Save back to JSON
     FEEDBACK_PATH.write_text(json.dumps(new_feedback, indent=4), encoding="utf-8")
-    
-    # Update UI immediately
-    table.update_rows(new_feedback)
+    table.rows = new_feedback # Fixed: Use assignment for reactive table updates
     ui.notify("Feedback entry deleted.", type="info")
 
 @ui.page("/admin")
 def admin_page() -> None:
-    # Access Control
     if not app.storage.user.get('authenticated', False):
         _show_login_form()
         return
@@ -46,11 +37,10 @@ def admin_page() -> None:
                 ui.label("User Feedback").classes("text-3xl font-bold")
             
             with ui.row().classes("gap-2"):
-                ui.button(icon="refresh", on_click=lambda: table.update_rows(_load_feedback())) \
+                ui.button(icon="refresh", on_click=lambda: setattr(table, 'rows', _load_feedback())) \
                     .props("flat color=slate-400")
                 ui.button(icon="logout", on_click=_logout).props("flat color=negative")
 
-        # Table Definitions
         columns = [
             {'name': 'created_at', 'label': 'Date', 'field': 'created_at', 'sortable': True, 'align': 'left'},
             {'name': 'name', 'label': 'Name', 'field': 'name', 'sortable': True, 'align': 'left'},
@@ -66,20 +56,17 @@ def admin_page() -> None:
             row_key='created_at'
         ).classes("w-full bg-[#151b22] text-slate-200 border border-slate-800 rounded-lg")
 
-        # Search Slot
         with table.add_slot('top-right'):
             with ui.input('Search feedback...').props('outlined dense dark').bind_value(table, 'filter') as search:
                 with search.add_slot('append'):
                     ui.icon('search')
 
-        # Delete Button Slot (using Quasar syntax)
         table.add_slot('body-cell-delete', '''
             <q-td :props="props">
                 <q-btn flat round icon="delete" color="negative" @click="$parent.$emit('delete', props.row)" />
             </q-td>
         ''')
         
-        # Listen for delete event and show confirmation
         table.on('delete', lambda msg: _confirm_delete(msg.args, table))
 
 def _confirm_delete(row: dict, table: ui.table):
