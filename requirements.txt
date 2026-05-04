@@ -1,6 +1,8 @@
 # GUI & Styling
 ttkbootstrap
 tkinter
+nicegui
+contextlib
 
 # AI & API
 groq
