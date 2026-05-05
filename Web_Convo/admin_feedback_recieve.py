@@ -1,6 +1,6 @@
 from __future__ import annotations
 from nicegui import app, ui
-from app import back_button, shell
+from ui_parts import back_button, shell
 from typing import cast, Any
 # Initialize Supabase client
 from database import supabase
