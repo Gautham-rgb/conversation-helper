@@ -1,5 +1,5 @@
 from nicegui import app, ui
-from app import shell, back_button
+from ui_parts import shell, back_button
 @ui.page("/tutorial")
 def tutorial_page() -> None:
     with shell("Tutorial"):

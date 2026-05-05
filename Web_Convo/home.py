@@ -1,6 +1,6 @@
 from __future__ import annotations
 from nicegui import ui
-from app import shell
+from ui_parts import shell
 from CLI_convo.profile_storage import Profile
 
 def _profiles() -> list[Profile]:

@@ -1,6 +1,7 @@
 from __future__ import annotations
 from nicegui import ui
-from app import back_button, chip_list, shell
+from ui_parts import back_button, shell
+from app import chip_list
 from CLI_convo.profile_storage import Profile
 
 @ui.page("/profile/{name}")
