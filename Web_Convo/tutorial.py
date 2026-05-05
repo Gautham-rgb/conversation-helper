@@ -30,7 +30,7 @@ def tutorial_page() -> None:
                     ui.button("Go Home", on_click=lambda: ui.navigate.to("/")).props("color=primary")
                 
                 with ui.tab_panel(t2):
-                    ui.markdown("### Start Here\n- Create a new profile identity.\n- Use the update flow to refresh profile data[cite: 1].")
+                    ui.markdown("### Start Here\n- Create a new profile identity.\n- Use the update flow to refresh profile data.")
                     ui.button("Create Profile", on_click=lambda: ui.navigate.to("/create")).props("color=primary")
                 
                 with ui.tab_panel(t3):
@@ -41,5 +41,6 @@ def tutorial_page() -> None:
                 
                 with ui.tab_panel(t5):
                     ui.markdown("### Using Pyfriend\n- Simulate conversations tailored to specific profiles.\n- Use voice-to-text or manual typing.")
+                    ui.button("Go to Pyfriend", on_click = ui.navigate.to("/all_pyfriend"))
 
         ui.button("Exit Tutorial", on_click=lambda: ui.navigate.to("/")).classes("mt-4")
