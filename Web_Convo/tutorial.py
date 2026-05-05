@@ -41,6 +41,6 @@ def tutorial_page() -> None:
                 
                 with ui.tab_panel(t5):
                     ui.markdown("### Using Pyfriend\n- Simulate conversations tailored to specific profiles.\n- Use voice-to-text or manual typing.")
-                    ui.button("Go to Pyfriend", on_click = ui.navigate.to("/all_pyfriend"))
+                    ui.button("Go to Pyfriend", on_click =lambda: ui.navigate.to("/all_pyfriend"))
 
         ui.button("Exit Tutorial", on_click=lambda: ui.navigate.to("/")).classes("mt-4")
