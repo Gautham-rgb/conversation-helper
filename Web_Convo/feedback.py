@@ -1,36 +1,59 @@
 from __future__ import annotations
-import json
-from datetime import datetime
-from pathlib import Path
+import os
+from supabase import create_client, Client
 from nicegui import ui
 from app import back_button, shell
 
-FEEDBACK_PATH = Path(__file__).resolve().parent / "feedback.json"
+# Initialize Supabase client using environment variables
+# Ensure SUPABASE_URL and SUPABASE_KEY are set in your deployment settings
+url: str = os.environ.get("SUPABASE_URL", "")
+key: str = os.environ.get("SUPABASE_KEY", "")
+supabase: Client = create_client(url, key)
 
 @ui.page("/feedback")
 def feedback_page() -> None:
     with shell("Feedback"):
         back_button("/")
         ui.label("Feedback").classes("text-3xl font-bold")
-        ui.label("Tell us what worked or what should be better.").classes("text-slate-400")
-        with ui.card().classes("w-full max-w-2xl bg-[#151b22] p-5 gap-4"):
+        ui.label("Tell us what worked, what felt off, or what should be better next.").classes("text-slate-400")
+
+        with ui.card().classes("w-full max-w-2xl bg-[#151b22] rounded-lg p-5 gap-4"):
             name = ui.input("Name").classes("w-full").props("outlined")
             contact = ui.input("Contact number").classes("w-full").props("outlined")
+
             with ui.column().classes("gap-2"):
                 ui.label("Rating").classes("text-sm text-slate-300")
                 rating = ui.rating(value=5, max=5).props("size=lg color=amber")
+
             comments = ui.textarea("Comments").classes("w-full").props("outlined autogrow")
-            ui.button("Submit Feedback", icon="send", on_click=lambda: _submit_feedback(name.value, rating.value, contact.value, comments.value)).props("color=positive")
 
-def _submit_feedback(n: str|None, r: int|float|None, c: str|None, comm: str|None) -> None:
-    cl_n, cl_c, cl_comm = (n or "").strip(), (c or "").strip(), (comm or "").strip()
-    if not all([cl_n, cl_c, cl_comm]): ui.notify("All fields required.", type="warning"); return
-    entry = {"name": cl_n, "rating": int(r or 0), "contact_number": cl_c, "comments": cl_comm, "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
-    fb = _load_feedback(); fb.append(entry)
-    FEEDBACK_PATH.write_text(json.dumps(fb, indent=4), encoding="utf-8")
-    ui.notify("Thanks, feedback saved.", type="positive"); ui.navigate.to("/")
+            ui.button(
+                "Submit Feedback",
+                icon="send",
+                on_click=lambda: _submit_feedback(name.value, rating.value, contact.value, comments.value),
+            ).props("color=positive")
 
-def _load_feedback() -> list[dict]:
-    if not FEEDBACK_PATH.exists(): return []
-    try: return json.loads(FEEDBACK_PATH.read_text(encoding="utf-8"))
-    except: return []
+def _submit_feedback(name: str | None, rating: int | float | None, contact: str | None, comments: str | None) -> None:
+    clean_name = (name or "").strip()
+    clean_contact = (contact or "").strip()
+    clean_comments = (comments or "").strip()
+
+    if not all([clean_name, clean_contact, clean_comments]):
+        ui.notify("All fields are required.", type="warning")
+        return
+
+    # Data structure for Supabase[cite: 5]
+    entry = {
+        "name": clean_name,
+        "rating": int(rating or 0),
+        "contact_number": clean_contact,
+        "comments": clean_comments
+        # 'created_at' is typically handled automatically by Supabase defaults
+    }
+
+    try:
+        supabase.table("user_feedback").insert(entry).execute()
+        ui.notify("Thanks, feedback saved to database.", type="positive")
+        ui.navigate.to("/")
+    except Exception as e:
+        ui.notify(f"Database Error: {e}", type="negative")

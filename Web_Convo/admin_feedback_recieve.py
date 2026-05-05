@@ -1,28 +1,36 @@
 from __future__ import annotations
-import json
-from datetime import datetime
-from pathlib import Path
+import os
+from supabase import create_client, Client
 from nicegui import app, ui
 from app import back_button, shell
+from typing import cast, Any
+# Initialize Supabase client
+url: str = os.environ.get("SUPABASE_URL", "")
+key: str = os.environ.get("SUPABASE_KEY", "")
+supabase: Client = create_client(url, key)
 
-FEEDBACK_PATH = Path(__file__).resolve().parent / "feedback.json"
-ADMIN_PASSWORD = "admin" 
+ADMIN_PASSWORD = "ipthisaddress" 
 
-def _load_feedback() -> list[dict]:
-    if not FEEDBACK_PATH.exists():
-        return []
+def _load_feedback() -> list[dict[str, Any]]:
     try:
-        data = json.loads(FEEDBACK_PATH.read_text(encoding="utf-8"))
-        return data if isinstance(data, list) else []
-    except (json.JSONDecodeError, FileNotFoundError):
+        response = supabase.table("user_feedback").select("*").order("created_at", desc=True).execute()
+        # Explicitly cast the Supabase JSON output to the expected list of dicts
+        return cast(list[dict[str, Any]], response.data or [])
+    except Exception as e:
+        ui.notify(f"Error loading feedback: {e}", type="negative")
         return []
 
 def _delete_feedback(row: dict, table: ui.table) -> None:
-    feedback = _load_feedback()
-    new_feedback = [f for f in feedback if f.get('created_at') != row.get('created_at')]
-    FEEDBACK_PATH.write_text(json.dumps(new_feedback, indent=4), encoding="utf-8")
-    table.rows = new_feedback # Fixed: Use assignment for reactive table updates
-    ui.notify("Feedback entry deleted.", type="info")
+    """Removes a specific entry from Supabase and updates the UI."""
+    try:
+        # Use the 'id' column provided by Supabase[cite: 1]
+        supabase.table("user_feedback").delete().eq("id", row.get("id")).execute()
+        
+        # Refresh the table rows locally
+        table.rows = [r for r in table.rows if r.get('id') != row.get('id')]
+        ui.notify("Feedback entry deleted from database.", type="info")
+    except Exception as e:
+        ui.notify(f"Delete failed: {e}", type="negative")
 
 @ui.page("/admin")
 def admin_page() -> None:
@@ -53,7 +61,7 @@ def admin_page() -> None:
         table = ui.table(
             columns=columns, 
             rows=_load_feedback(), 
-            row_key='created_at'
+            row_key='id' # Supabase uses 'id' as primary key[cite: 1]
         ).classes("w-full bg-[#151b22] text-slate-200 border border-slate-800 rounded-lg")
 
         with table.add_slot('top-right'):
@@ -72,7 +80,7 @@ def admin_page() -> None:
 def _confirm_delete(row: dict, table: ui.table):
     with ui.dialog() as dialog, ui.card().classes('bg-[#151b22] text-white p-6'):
         ui.label(f"Delete feedback from {row.get('name')}?").classes('text-lg font-bold')
-        ui.label("This action cannot be undone.").classes('text-slate-400')
+        ui.label("This action is permanent in the database.").classes('text-slate-400')
         with ui.row().classes('w-full justify-end mt-4'):
             ui.button('Cancel', on_click=dialog.close).props('flat')
             ui.button('Delete', on_click=lambda: [_delete_feedback(row, table), dialog.close()]) \
