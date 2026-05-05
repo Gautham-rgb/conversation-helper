@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 
-from nicegui import ui
+from nicegui import ui, app
 
 import all_pyfriend
 import create_profile
@@ -18,6 +18,21 @@ import tutorial
 @ui.page("/")
 def index() -> None:
     home.home()
+
+ui.add_head_html('''
+    <title>Echo Clear | Instant Social Cheat Codes</title>
+    <meta name="description" content="AI-powered conversation strategy for any situation.">
+    <meta property="og:title" content="Echo Clear">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Echo Clear",
+      "operatingSystem": "Web",
+      "applicationCategory": "SocialHelper"
+    }
+    </script>
+''')
 
 
 if __name__ in {"__main__", "__mp_main__"}:
