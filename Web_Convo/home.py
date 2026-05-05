@@ -3,12 +3,12 @@ from nicegui import ui
 from ui_parts import shell
 from CLI_convo.offline import ONLINE
 from CLI_convo.profile_storage import Profile
-
+from tutorial import start_tutorial
 def _profiles() -> list[Profile]:
     return sorted([p for p in Profile.load_all().values() if p is not None], key=lambda x: x.name.lower())
 
 def home() -> None:
-    with shell("Dashboard"):
+    with shell("Dashboard", start_tutorial):
         profs = _profiles()
         with ui.row().classes("w-full items-start justify-between gap-4"):
             with ui.column().classes("gap-1"):

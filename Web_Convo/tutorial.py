@@ -9,7 +9,7 @@ def start_tutorial():
 @ui.page("/tutorial")
 def tutorial_page() -> None:
     # Use the shell without a tutorial button to prevent nested loops
-    with shell("Tutorial", start_tutorial):
+    with shell("Tutorial"):
         back_button("/")
         ui.label("Application-wide Tutorial").classes("text-3xl font-bold")
         ui.label(
