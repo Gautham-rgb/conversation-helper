@@ -1,13 +1,9 @@
 from __future__ import annotations
-import os
-from supabase import create_client, Client
 from nicegui import app, ui
 from app import back_button, shell
 from typing import cast, Any
 # Initialize Supabase client
-url: str = os.environ.get("SUPABASE_URL", "")
-key: str = os.environ.get("SUPABASE_KEY", "")
-supabase: Client = create_client(url, key)
+from database import supabase
 
 ADMIN_PASSWORD = "ipthisaddress" 
 

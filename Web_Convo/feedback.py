@@ -1,14 +1,10 @@
 from __future__ import annotations
-import os
-from supabase import create_client, Client
+
 from nicegui import ui
 from app import back_button, shell
 
 # Initialize Supabase client using environment variables
-# Ensure SUPABASE_URL and SUPABASE_KEY are set in your deployment settings
-url: str = os.environ.get("SUPABASE_URL", "")
-key: str = os.environ.get("SUPABASE_KEY", "")
-supabase: Client = create_client(url, key)
+from database import supabase
 
 @ui.page("/feedback")
 def feedback_page() -> None:

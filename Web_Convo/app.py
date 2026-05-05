@@ -26,7 +26,12 @@ def shell(title: str):
         with ui.row().classes("w-full items-center justify-between gap-3"):
             with ui.row().classes("items-center gap-3"):
                 ui.icon("forum").classes("text-blue-400 text-2xl")
-                ui.label("Conversation Manager").classes("text-lg font-semibold")
+                ui.label("Echo - Clear").classes("text-lg font-semibold")
+                
+            ui.button('Tutorial', on_click=lambda: ui.notify('Starting...')) \
+                .props('flat color=white icon=help_outline') \
+                .classes('text-sm') 
+               
             ui.label(title).classes("text-sm text-slate-400")
     with ui.column().classes("w-full max-w-6xl mx-auto px-5 py-6 gap-5") as content:
         yield content
