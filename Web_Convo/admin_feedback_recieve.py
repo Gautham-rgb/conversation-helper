@@ -13,7 +13,7 @@ ADMIN_PASSWORD = "ipthisaddress"
 
 def _load_feedback() -> list[dict[str, Any]]:
     try:
-        response = supabase.table("user_feedback").select("*").order("created_at", desc=True).execute()
+        response = supabase.table("feedback").select("*").order("created_at", desc=True).execute()
         # Explicitly cast the Supabase JSON output to the expected list of dicts
         return cast(list[dict[str, Any]], response.data or [])
     except Exception as e:
