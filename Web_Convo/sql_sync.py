@@ -18,7 +18,8 @@ def sync_new_profile(profile_obj: Profile):
 
     # 2. Update Local JSON[cite: 1]
     # Load current data or start fresh if empty[cite: 1]
-    current_data = Profile.load_all_raw() #[cite: 1]
+    current_data = {k: {"name": v.name, "traits": v.traits, "notes": v.notes, "interests": v.interests, "avoids": v.avoids, #type:ignore
+                        "history": [c.to_dict() for c in v.prev_conver]} for k, v in Profile.load_all().items()} #[cite: 1] #type:ignore
     current_data[profile_obj.name.lower()] = profile_dict #[cite: 1]
     
     with open(storage_path, "w") as f:

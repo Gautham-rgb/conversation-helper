@@ -1,6 +1,7 @@
 from __future__ import annotations
 from nicegui import ui
 from ui_parts import shell
+from CLI_convo.offline import ONLINE
 from CLI_convo.profile_storage import Profile
 
 def _profiles() -> list[Profile]:
@@ -12,7 +13,7 @@ def home() -> None:
         with ui.row().classes("w-full items-start justify-between gap-4"):
             with ui.column().classes("gap-1"):
                 ui.label("People").classes("text-3xl font-bold")
-                ui.label(f"{len(profs)} profiles · Online Groq mode").classes("text-slate-400")
+                ui.label(f"{len(profs)} profiles · {"Online (Groq)" if ONLINE else "Offline (Gemma)"}").classes("text-slate-400")
             with ui.row().classes("gap-2"):
                 ui.button("New Profile", icon="person_add", on_click=lambda: ui.navigate.to("/create")).props("color=positive")
                 ui.button("Ask All", icon="voice_over", on_click=lambda: ui.navigate.to("/all_pyfriend")).props("color=success")

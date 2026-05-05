@@ -3,9 +3,10 @@ from nicegui import app, ui
 from ui_parts import back_button, shell
 from typing import cast, Any
 # Initialize Supabase client
+import os
 from database import supabase
 
-ADMIN_PASSWORD = "ipthisaddress" 
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "ipthisaddress") 
 
 def _load_feedback() -> list[dict[str, Any]]:
     try:
