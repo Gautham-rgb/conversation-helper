@@ -31,6 +31,8 @@ python "import os;os.environ['KERAS_BACKEND'] = 'torch'"
 python GUI_convo/GUI.py
 #or if you want the web interface
 python Web_Convo/Web.py
+#or if you want to look at the black box that shall not be touched
+python CLI_convo/CLI.py
 ```
 ---
 
