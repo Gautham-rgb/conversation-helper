@@ -3,6 +3,7 @@ import os, sys
 from contextlib import contextmanager
 from pathlib import Path
 from nicegui import ui
+from tutorial import tutorial_page
 
 APP_DIR = Path(__file__).resolve().parent
 PROJECT_DIR = APP_DIR.parent
@@ -19,6 +20,9 @@ def apply_theme() -> None:
         </style>
     """)
 
+def tutorial(text: str):
+    ui.notify(text)
+    tutorial_page()
 @contextmanager
 def shell(title: str):
     apply_theme()
@@ -27,8 +31,8 @@ def shell(title: str):
             with ui.row().classes("items-center gap-3"):
                 ui.icon("forum").classes("text-blue-400 text-2xl")
                 ui.label("Echo - Clear").classes("text-lg font-semibold")
-                
-            ui.button('Tutorial', on_click=lambda: ui.notify('Starting...')) \
+
+            ui.button('Tutorial', on_click=lambda: tutorial("Starting...")) \
                 .props('flat color=white icon=help_outline') \
                 .classes('text-sm') 
                
