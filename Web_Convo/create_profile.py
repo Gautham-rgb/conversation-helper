@@ -4,6 +4,7 @@ from nicegui import ui
 from app import back_button, parse_list, shell
 from CLI_convo.profile_storage import Profile
 from profile_builder import build_profile
+from database import supabase
 
 @ui.page("/create")
 def create_new() -> None:
@@ -63,3 +64,16 @@ def _save_from_transcript(old: str|None, new: str|None, transcript: str|None) ->
         except Exception as e: ui.notify(f"Failed: {e}", type="negative")
         finally: n.dismiss()
     ui.timer(0, run, once=True)
+
+def save_profile_sql(profile_data):
+    try:
+        # Instead of json.dump, we use .upsert()
+        # This handles both creating a new user and updating an old one
+        supabase.table("profiles").upsert({
+            "name": profile_data['name'],
+            "interests": profile_data['interests']
+        }, on_conflict="name").execute()
+        return True
+    except Exception as e:
+        print(f"Database Error: {e}")
+        return False

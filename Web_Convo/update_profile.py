@@ -7,6 +7,7 @@ from CLI_convo.profile_storage import Profile
 from profile_builder import build_profile
 
 
+
 @ui.page("/update/{name}")
 def update_profile(name: str) -> None:
     profile = Profile.load(name)
@@ -22,6 +23,7 @@ def update_profile(name: str) -> None:
         ui.label("Paste a transcript and the app will extract traits, interests, notes, and avoids.").classes(
             "text-slate-400"
         )
+        ui.button("Open Tutorial", on_click=lambda: ui.navigate.to("/tutorial")).props("color=secondary")
         with ui.card().classes("w-full bg-[#151b22] rounded-lg p-5 gap-4"):
             transcript = ui.textarea("Conversation transcript").classes("w-full").props("outlined autogrow")
 
