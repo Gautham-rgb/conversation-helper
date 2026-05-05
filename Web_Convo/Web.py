@@ -24,6 +24,8 @@ ui.add_head_html('''
     <meta name="description" content="Echo Clear: Instant social cheat codes. Get conversation starters and wildcard moves to master any situation.">
     <meta property="og:title" content="Echo Clear">
     <meta property="og:description" content="Instant social cheat codes and AI conversation starters.">
+    <meta name="robots" content="index, follow">
+    <meta name="google-site-verification" content="ynwcz-OGyvodtkdvvXbpxRD0btS1ljvRwfLlB4yrHQU" />
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
