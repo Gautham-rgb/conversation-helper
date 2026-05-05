@@ -2,3 +2,18 @@ nicegui==2.24.2
 groq==1.2.0
 python-dotenv==1.2.2
 supabase
+# --- AI & Inference (Torch Backend) ---
+keras-hub>=0.17.0        # Gemma 4 preset loader
+torch>=2.3.0             # Primary ML engine
+torchvision
+torchaudio               # Necessary for Whisper/Audio processing
+groq>=0.9.0              # Cloud API
+openai-whisper           # Local audio transcription
+
+# --- Audio Processing ---
+sounddevice>=0.4.6       # Mic recording
+scipy>=1.12.0            # WAV file generation
+numpy>=1.26.0
+
+# --- Utilities ---
+pathlib>=1.0.1           # Path management
