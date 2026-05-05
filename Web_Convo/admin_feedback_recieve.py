@@ -20,7 +20,7 @@ def _load_feedback() -> list[dict[str, Any]]:
 def _delete_feedback(row: dict, table: ui.table) -> None:
     """Removes a specific entry from Supabase and updates the UI."""
     try:
-        # Use the 'id' column provided by Supabase[cite: 1]
+        # Use the 'id' column provided by Supabase
         supabase.table("feedback").delete().eq("id", row.get("id")).execute()
         
         # Refresh the table rows locally
@@ -58,7 +58,7 @@ def admin_page() -> None:
         table = ui.table(
             columns=columns, 
             rows=_load_feedback(), 
-            row_key='id' # Supabase uses 'id' as primary key[cite: 1]
+            row_key='id' # Supabase uses 'id' as primary key
         ).classes("w-full bg-[#151b22] text-slate-200 border border-slate-800 rounded-lg")
 
         with table.add_slot('top-right'):

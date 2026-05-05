@@ -34,10 +34,10 @@ def tutorial_page() -> None:
                     ui.button("Create Profile", on_click=lambda: ui.navigate.to("/create")).props("color=primary")
                 
                 with ui.tab_panel(t3):
-                    ui.markdown("### Profile Creation\n- Enter traits, interests, and avoids[cite: 1].\n- The AI can extract these from conversation transcripts automatically.")
+                    ui.markdown("### Profile Creation\n- Enter traits, interests, and avoids.\n- The AI can extract these from conversation transcripts automatically.")
                 
                 with ui.tab_panel(t4):
-                    ui.markdown("### Update & SQL Sync\n- Saving updates your local `profiles.json` immediately[cite: 1].\n- A backup is simultaneously sent to Supabase SQL for safety.")
+                    ui.markdown("### Update & SQL Sync\n- Saving updates your local `profiles.json` immediately.\n- A backup is simultaneously sent to Supabase SQL for safety.")
                 
                 with ui.tab_panel(t5):
                     ui.markdown("### Using Pyfriend\n- Simulate conversations tailored to specific profiles.\n- Use voice-to-text or manual typing.")
