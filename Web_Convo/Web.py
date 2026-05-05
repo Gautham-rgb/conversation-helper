@@ -15,10 +15,6 @@ import feedback
 import admin_feedback_recieve
 import tutorial
 
-@ui.page("/")
-def index() -> None:
-    home.home()
-
 ui.add_head_html('''
     <title>Echo Clear | Instant Social Cheat Codes</title>
     <meta name="description" content="Echo Clear: Instant social cheat codes. Get conversation starters and wildcard moves to master any situation.">
@@ -36,6 +32,12 @@ ui.add_head_html('''
     }
     </script>
 ''')
+
+@ui.page("/")
+def index() -> None:
+    home.home()
+
+
 
 
 if __name__ in {"__main__", "__mp_main__"}:
