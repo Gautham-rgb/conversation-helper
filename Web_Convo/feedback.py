@@ -52,7 +52,7 @@ def _submit_feedback(name: str | None, rating: int | float | None, contact: str 
     }
 
     try:
-        supabase.table("user_feedback").insert(entry).execute()
+        supabase.table("feedback").insert(entry).execute()
         ui.notify("Thanks, feedback saved to database.", type="positive")
         ui.navigate.to("/")
     except Exception as e:

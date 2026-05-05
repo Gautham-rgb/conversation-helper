@@ -24,7 +24,7 @@ def _delete_feedback(row: dict, table: ui.table) -> None:
     """Removes a specific entry from Supabase and updates the UI."""
     try:
         # Use the 'id' column provided by Supabase[cite: 1]
-        supabase.table("user_feedback").delete().eq("id", row.get("id")).execute()
+        supabase.table("feedback").delete().eq("id", row.get("id")).execute()
         
         # Refresh the table rows locally
         table.rows = [r for r in table.rows if r.get('id') != row.get('id')]
