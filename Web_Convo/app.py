@@ -3,7 +3,7 @@ import os, sys
 from contextlib import contextmanager
 from pathlib import Path
 from nicegui import ui
-from tutorial import tutorial_page
+
 
 APP_DIR = Path(__file__).resolve().parent
 PROJECT_DIR = APP_DIR.parent
