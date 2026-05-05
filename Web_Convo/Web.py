@@ -21,8 +21,9 @@ def index() -> None:
 
 ui.add_head_html('''
     <title>Echo Clear | Instant Social Cheat Codes</title>
-    <meta name="description" content="AI-powered conversation strategy for any situation.">
+    <meta name="description" content="Echo Clear: Instant social cheat codes. Get conversation starters and wildcard moves to master any situation.">
     <meta property="og:title" content="Echo Clear">
+    <meta property="og:description" content="Instant social cheat codes and AI conversation starters.">
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
