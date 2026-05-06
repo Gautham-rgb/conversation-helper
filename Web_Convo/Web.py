@@ -16,7 +16,7 @@ import feedback
 import admin_feedback_recieve
 import tutorial
 
-GOOGLE_VERIFY_FILE = 'google_your_filename_here.html' 
+GOOGLE_VERIFY_FILE = 'google7f2ee60747d0ac11.html' 
 
 @app.get(f'/{GOOGLE_VERIFY_FILE}')
 async def verify_google():
