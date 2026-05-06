@@ -22,7 +22,7 @@ def profile_page(name: str) -> None:
         with ui.row().classes("w-full gap-3"):
             ui.button("Live Session", icon="psychology", on_click=lambda: ui.navigate.to(f"/live/{p.name}")).props("color=primary")
             # Fixed: Redirected update to the Edit profile page since /update route doesn't exist
-            ui.button("Update Profile", icon="auto_fix_high", on_click=lambda: ui.navigate.to(f"/edit/{p.name}")).props("color=info")
+            ui.button("Update Profile", icon="auto_fix_high", on_click=lambda: ui.navigate.to(f"/update/{p.name}")).props("color=info")
             ui.button("History", icon="history", on_click=lambda: ui.navigate.to(f"/history/{p.name}")).props("color=secondary")
         with ui.grid(columns=2).classes("w-full gap-4 max-[720px]:grid-cols-1"):
             for lbl, itms, clr, icn in [("Traits", p.traits, "blue", "badge"), ("Interests", p.interests, "green", "interests"), ("Notes", p.notes, "amber", "notes"), ("Avoids", p.avoids, "red", "do_not_disturb_on")]:

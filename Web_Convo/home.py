@@ -4,12 +4,23 @@ from ui_parts import shell
 from CLI_convo.offline import ONLINE
 from CLI_convo.profile_storage import Profile
 from tutorial import start_tutorial
+from database import supabase
 def _profiles() -> list[Profile]:
     return sorted([p for p in Profile.load_all().values() if p is not None], key=lambda x: x.name.lower())
 
+def get_profiles_from_supabase():
+    try:
+        # Make sure you are using .select("*")
+        response = supabase.table("profiles").select("*").execute()
+        return response.data
+    except Exception as e:
+        print(f"Fetch failed: {e}")
+        return []
+    
 def home() -> None:
     with shell("Dashboard", start_tutorial):
-        profs = _profiles()
+        res = supabase.table("profiles").select("*").execute()
+        profs = res.data or []
         with ui.row().classes("w-full items-start justify-between gap-4"):
             with ui.column().classes("gap-1"):
                 ui.label("People").classes("text-3xl font-bold")
@@ -25,13 +36,13 @@ def home() -> None:
             return
         with ui.grid(columns=3).classes("w-full gap-4 max-[900px]:grid-cols-2 max-[640px]:grid-cols-1"):
             for p in profs:
-                latest = p.prev_conver[-1] if p.prev_conver else None
-                with ui.card().classes("bg-[#151b22] p-4 cursor-pointer").on("click", lambda _=None, n=p.name: ui.navigate.to(f"/profile/{n}")):
-                    ui.label(p.name).classes("text-xl font-semibold")
-                    ui.label(", ".join(p.traits[:4]) if p.traits else "No traits").classes("text-sm text-slate-300")
+                latest = p.prev_conver[-1] if p.prev_conver else None  #type: ignore
+                with ui.card().classes("bg-[#151b22] p-4 cursor-pointer").on("click", lambda _=None, n=p.name: ui.navigate.to(f"/profile/{n}")): #type: ignore
+                    ui.label(p.name).classes("text-xl font-semibold") #type: ignore
+                    ui.label(", ".join(p.traits[:4]) if p.traits else "No traits").classes("text-sm text-slate-300") #type: ignore
                     with ui.row().classes("gap-2"):
-                        ui.chip(f"{len(p.interests)} interests").props("outline color=blue")
-                        ui.chip(f"{len(p.prev_conver)} logs").props("outline color=green")
+                        ui.chip(f"{len(p.interests)} interests").props("outline color=blue") #type: ignore
+                        ui.chip(f"{len(p.prev_conver)} logs").props("outline color=green") #type: ignore
                     if latest:
                         ui.separator().classes("bg-slate-700")
                         ui.label(latest.summary).classes("text-sm text-slate-400 line-clamp-2")

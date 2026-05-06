@@ -6,6 +6,7 @@ from app import parse_list
 from CLI_convo.profile_storage import Profile
 from profile_builder import build_profile
 from database import supabase
+from sql_sync import sync_new_profile
 
 @ui.page("/create")
 def create_new() -> None:
@@ -48,6 +49,7 @@ def _save_manual(old: str|None, new: str|None, t: str, i: str, n: str, a: str) -
     p = Profile(clean)
     p.add_trait(*parse_list(t)); p.add_interest(*parse_list(i)); p.add_note(*parse_list(n)); p.add_avoid(*parse_list(a))
     p.save()
+    sync_new_profile(p)
     ui.notify(f'Saved "{clean}".', type="positive"); ui.navigate.to(f"/profile/{clean}")
 
 async def _extract(old: str|None, clean: str, transcript: str) -> None:

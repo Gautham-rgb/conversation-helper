@@ -1,46 +1,39 @@
 from __future__ import annotations
-from nicegui import ui
+from nicegui import ui, app
 from ui_parts import back_button, shell
-from database import supabase, admin_supabase
+from database import admin_supabase
 
 @ui.page("/admin/dev")
 def admin_dev_page() -> None:
+    # Security: Only allow authenticated admin users
+    if not app.storage.user.get('authenticated', False):
+        ui.navigate.to('/admin')
+        return
+
     with shell("Dev Tools"):
         back_button("/")
         ui.label("Developer Control Panel").classes("text-3xl font-bold")
-        ui.label("Path: /admin/dev | v0.0.1-alpha").classes("text-slate-500 font-mono text-xs")
 
-        # --- SEEDING SECTION ---
-        with ui.card().classes("w-full bg-[#1c2128] border border-slate-700 p-6 mt-4"):
-            ui.label("Database Seeding").classes("text-xl font-semibold text-warning")
-            ui.label("Inject default test profiles into Supabase SQL.").classes("text-slate-400 text-sm")
-            
-            async def run_seed():
-                test_profiles = [
-                    {"name": "Arnav", "traits": "Analytical, quiet, values tech accuracy", "avoids": "Vague plans"},
-                    {"name": "Sara", "traits": "High energy, creative, big picture thinker", "avoids": "Micromanagement"},
-                    {"name": "Marcus", "traits": "Direct, blunt, results-oriented", "avoids": "Small talk"}
-                ]
-                try:
-                    admin_supabase.table("profiles").upsert(test_profiles, on_conflict="name").execute()
-                    ui.notify("Profiles seeded successfully!", type="positive", icon="done")
-                except Exception as e:
-                    ui.notify(f"Seed failed: {e}", type="negative")
+        async def run_seed():
+            test_profiles = [
+                {"name": "arnav", "display_name": "Arnav", "traits": ["Analytical", "Quiet"]},
+                {"name": "sara", "display_name": "Sara", "traits": ["High Energy", "Creative"]}
+            ]
+            try:
+                # Use admin_supabase to bypass RLS policies[cite: 1, 6]
+                admin_supabase.table("profiles").upsert(test_profiles).execute()
+                ui.notify("Profiles seeded successfully!", type="positive")
+            except Exception as e:
+                ui.notify(f"Seed failed: {e}", type="negative")
 
-            ui.button("Seed Test Data", icon="auto_fix_high", on_click=run_seed).props("color=warning")
+        ui.button("Seed Test Data", icon="auto_fix_high", on_click=run_seed).props("color=warning")
 
-        # --- DANGER ZONE SECTION ---
-        with ui.card().classes("w-full bg-[#1c2128] border border-red-900/30 p-6 mt-4"):
-            ui.label("Danger Zone").classes("text-xl font-semibold text-negative")
-            ui.label("Wipe all profiles from the SQL database.").classes("text-slate-400 text-sm")
+        async def clear_db():
+            try:
+                # Common hack to delete all rows in Supabase[cite: 1]
+                admin_supabase.table("profiles").delete().neq("name", "NONE").execute()
+                ui.notify("Database cleared.", type="info")
+            except Exception as e:
+                ui.notify(f"Clear failed: {e}", type="negative")
 
-            async def clear_db():
-                try:
-                    # In Supabase, deleting with .neq("name", "NONE") is a common hack to 'delete all'
-                    admin_supabase.table("profiles").delete().neq("name", "NONE").execute()
-                    ui.notify("Database cleared.", type="info", icon="delete_sweep")
-                except Exception as e:
-                    ui.notify(f"Clear failed: {e}", type="negative")
-
-            with ui.button("Clear SQL Database", icon="dangerous", on_click=clear_db).props("color=negative outline"):
-                ui.tooltip("Careful! This removes everything from the cloud.")
+        ui.button("Clear SQL Database", icon="dangerous", on_click=clear_db).props("color=negative outline")

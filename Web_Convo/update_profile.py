@@ -1,7 +1,7 @@
 import asyncio
 
 from nicegui import ui
-
+from sql_sync import sync_new_profile
 from ui_parts import back_button, shell
 from CLI_convo.profile_storage import Profile
 from profile_builder import build_profile
