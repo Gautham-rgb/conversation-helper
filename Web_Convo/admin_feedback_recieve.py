@@ -5,6 +5,7 @@ from typing import cast, Any
 # Initialize Supabase client
 import os
 from database import supabase
+from admin_dev import admin_dev_page
 
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "ipthisaddress") 
 
@@ -74,6 +75,10 @@ def admin_page() -> None:
         ''')
         
         table.on('delete', lambda msg: _confirm_delete(msg.args, table))
+    
+    with ui.footer().classes('bg-transparent'):
+        ui.button('Fixed Bottom Button', on_click=admin_dev_page ) \
+        .classes('w-full q-ma-md')
 
 def _confirm_delete(row: dict, table: ui.table):
     with ui.dialog() as dialog, ui.card().classes('bg-[#151b22] text-white p-6'):
