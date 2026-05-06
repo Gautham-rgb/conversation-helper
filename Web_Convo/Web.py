@@ -15,6 +15,7 @@ import update_profile
 import feedback
 import admin_feedback_recieve
 import tutorial
+import admin_dev
 
 GOOGLE_VERIFY_FILE = 'google7f2ee60747d0ac11.html' 
 
