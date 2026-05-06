@@ -29,6 +29,7 @@ def _delete_feedback(row: dict, table: ui.table) -> None:
     except Exception as e:
         ui.notify(f"Delete failed: {e}", type="negative")
 
+    
 @ui.page("/admin")
 def admin_page() -> None:
     if not app.storage.user.get('authenticated', False):

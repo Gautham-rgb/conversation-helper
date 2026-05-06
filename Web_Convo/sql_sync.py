@@ -1,6 +1,7 @@
 import json
 from database import supabase
-from CLI_convo.profile_storage import Profile, storage_path 
+from CLI_convo.profile_storage import Profile, storage_path
+import nicegui 
 
 def sync_new_profile(profile_obj: Profile):
     """
@@ -41,3 +42,15 @@ def sync_new_profile(profile_obj: Profile):
         print(f"Successfully synced {profile_obj.name} to Cloud and Local.")
     except Exception as e:
         print(f"Local saved, but Cloud sync failed: {e}")
+    
+
+def get_profile_from_sql(name: str):
+    """Fetch profile data from Supabase SQL table."""
+    try:
+        # Searches name column for a case-insensitive match
+        result = supabase.table("profiles").select("name, traits, avoids").ilike("name", name.strip()).execute()
+        if result.data:
+            return result.data[0]
+    except Exception as e:
+       nicegui.ui.notify(f"SQL Error: {e}", type = "negative")
+    return None

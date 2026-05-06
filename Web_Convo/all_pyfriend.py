@@ -1,20 +1,20 @@
 from __future__ import annotations
 import asyncio
 import base64
-import os
+import os, re
 import tempfile
 from nicegui import ui
 from ui_parts import back_button, shell
-from CLI_convo.config import api_key
 from CLI_convo.profile_storage import Profile
 from web_ai import complete, transcribe
+from sql_sync import get_profile_from_sql
 
 @ui.page("/all_pyfriend")
 def all_pyfriend_page() -> None:
     with shell("Ask All"):
         back_button("/")
         ui.label("Ask Pyfriend Across All Profiles").classes("text-3xl font-bold")
-        ui.label("Speak or type a situation, and the helper will use every saved profile as context.").classes("text-slate-400")
+        ui.label("Speak or type a situation. Use @person(Name) or @conversation(A, B) for cloud-sync context.").classes("text-slate-400")
 
         with ui.card().classes("w-full bg-[#151b22] rounded-lg p-5 gap-4"):
             output = ui.log(max_lines=200).classes("w-full h-72 bg-[#101418] border border-slate-700 rounded p-3")
@@ -102,10 +102,53 @@ def all_pyfriend_page() -> None:
         rec_button.on("mouseup", lambda: ui.run_javascript("stopWebConvoRecording()"))
         rec_button.on("mouseleave", lambda: ui.run_javascript("stopWebConvoRecording()"))
 
+def _profile_value(profile, field: str) -> str:
+    """Safely extracts fields from dict, object, or list/tuple."""
+    if profile is None: return ""
+    if isinstance(profile, dict):
+        return str(profile.get(field, "") or "")
+    if hasattr(profile, field):
+        return str(getattr(profile, field) or "")
+    # Handle raw list/tuple data from SQL if necessary
+    if isinstance(profile, (list, tuple)):
+        mapping = {"name": 0, "traits": 1, "avoids": 2}
+        index = mapping.get(field)
+        if index is not None and index < len(profile):
+            return str(profile[index] or "")
+    return ""
+
 async def _answer(user_text: str) -> str:
-    profiles = [p for p in Profile.load_all().values() if p is not None]
-    context = "\n\n".join(profile.to_prompt() for profile in profiles) or "No saved profiles yet."
-    system = f"Be a concise social intelligence helper. Use these profiles as context:\n{context}\n\nGive practical wording. No markdown bold."
+    person_tags = re.findall(r"@person\((.*?)\)", user_text)
+    convo_tags = re.findall(r"@conversation\((.*?),(.*?)\)", user_text)
+    context_parts = []
+
+    if person_tags or convo_tags:
+        for name in person_tags:
+            p = get_profile_from_sql(name.strip())
+            if p:
+                context_parts.append(
+                    f"FOCUS: {_profile_value(p, 'name')} (Traits: {_profile_value(p, 'traits')}, Avoid: {_profile_value(p, 'avoids')})"
+                )
+        
+        for n1, n2 in convo_tags:
+            p1 = get_profile_from_sql(n1.strip())
+            p2 = get_profile_from_sql(n2.strip())
+            if p1 and p2:
+                # FIXED: Added missing closing quote and parenthesis here
+                context_parts.append(
+                    f"SIMULATION: Interaction between {_profile_value(p1, 'name')} and {_profile_value(p2, 'name')}. "
+                    f"{_profile_value(p1, 'name')} is {_profile_value(p1, 'traits')} while {_profile_value(p2, 'name')} is {_profile_value(p2, 'traits')}."
+                )
+        context = "\n".join(context_parts)
+    else:
+        profiles = [p for p in Profile.load_all().values() if p is not None]
+        context = "\n\n".join(profile.to_prompt() for profile in profiles) or "No saved profiles yet."
+
+    system = (
+        f"Be a concise social intelligence helper. Context provided:\n{context}\n\n"
+        "If a @conversation tag was used, analyze the friction points between the two people. "
+        "Give practical wording. No markdown bold."
+    )
     return await asyncio.to_thread(complete, system, user_text)
 
 def _speak(text: str) -> None:
