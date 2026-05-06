@@ -22,7 +22,7 @@ def admin_dev_page() -> None:
                     {"name": "Marcus", "traits": "Direct, blunt, results-oriented", "avoids": "Small talk"}
                 ]
                 try:
-                    supabase.table("profiles").upsert(test_profiles, on_conflict="name").execute()
+                    admin_supabase.table("profiles").upsert(test_profiles, on_conflict="name").execute()
                     ui.notify("Profiles seeded successfully!", type="positive", icon="done")
                 except Exception as e:
                     ui.notify(f"Seed failed: {e}", type="negative")
