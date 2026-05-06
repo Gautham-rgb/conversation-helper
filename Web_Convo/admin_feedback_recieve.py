@@ -77,7 +77,7 @@ def admin_page() -> None:
         table.on('delete', lambda msg: _confirm_delete(msg.args, table))
     
     with ui.footer().classes('bg-transparent'):
-        ui.button('Fixed Bottom Button', on_click=admin_dev_page ) \
+        ui.button('Dev tools', on_click=admin_dev_page ) \
         .classes('w-full q-ma-md')
 
 def _confirm_delete(row: dict, table: ui.table):

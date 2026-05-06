@@ -1,7 +1,7 @@
 from __future__ import annotations
 from nicegui import ui
 from ui_parts import back_button, shell
-from sql_sync import supabase
+from database import supabase, admin_supabase
 
 @ui.page("/admin/dev")
 def admin_dev_page() -> None:
@@ -37,7 +37,7 @@ def admin_dev_page() -> None:
             async def clear_db():
                 try:
                     # In Supabase, deleting with .neq("name", "NONE") is a common hack to 'delete all'
-                    supabase.table("profiles").delete().neq("name", "NONE").execute()
+                    admin_supabase.table("profiles").delete().neq("name", "NONE").execute()
                     ui.notify("Database cleared.", type="info", icon="delete_sweep")
                 except Exception as e:
                     ui.notify(f"Clear failed: {e}", type="negative")
