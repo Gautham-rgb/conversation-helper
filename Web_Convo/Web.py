@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 
 from nicegui import ui, app
+from fastapi.responses import FileResponse
 
 import all_pyfriend
 import create_profile
@@ -15,12 +16,22 @@ import feedback
 import admin_feedback_recieve
 import tutorial
 
+GOOGLE_VERIFY_FILE = 'google_your_filename_here.html' 
+
+@app.get(f'/{GOOGLE_VERIFY_FILE}')
+async def verify_google():
+    # This looks for the file in the 'web_convo' folder
+    file_path = os.path.join(os.path.dirname(__file__), GOOGLE_VERIFY_FILE)
+    if os.path.exists(file_path):
+        return FileResponse(file_path)
+    return {"error": "Verification file not found"}, 404
+# --- GOOGLE VERIFICATION END ---
+
 ui.add_head_html('''
     <title>Echo Clear | Instant Social Cheat Codes</title>
     <meta name="description" content="Echo Clear: Instant social cheat codes. Get conversation starters and wildcard moves to master any situation.">
     <meta property="og:title" content="Echo Clear">
     <meta property="og:description" content="Instant social cheat codes and AI conversation starters.">
-    <meta name="google-site-verification" content="ynwcz-OGyvodtkdvvXbpxRD0btS1ljvRwfLlB4yrHQU" />
     <meta name="robots" content="index, follow">
     <script type="application/ld+json">
     {
@@ -36,9 +47,6 @@ ui.add_head_html('''
 @ui.page("/")
 def index() -> None:
     home.home()
-
-
-
 
 if __name__ in {"__main__", "__mp_main__"}:
     port = int(os.environ.get("PORT", "8080"))
