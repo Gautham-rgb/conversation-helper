@@ -18,13 +18,20 @@ def tutorial_page() -> None:
         
         with ui.card().classes("w-full max-w-3xl mx-auto rounded-lg p-5 gap-4 mt-6"):
             with ui.tabs().classes("w-full") as tabs:
+                t0 = ui.tab("0. What is this website for?")
                 t1 = ui.tab("1. App overview")
                 t2 = ui.tab("2. Start")
                 t3 = ui.tab("3. Creation")
                 t4 = ui.tab("4. SQL Sync")
                 t5 = ui.tab("5. Pyfriend")
-            
-            with ui.tab_panels(tabs, value=t1).classes('w-full bg-transparent'):
+
+            with ui.tab_panels(tabs, value=t0).classes('w-full bg-transparent'):
+                with ui.tab_panel(t1):
+                    ui.markdown("""THIS APP IS FOR BETA TESTING.
+                                - People can store other people as 'profiles', made of interests, avoids, notes and personality traits.
+                                - You can use these profiles to simulate a conversation or find perfect conversation starters using this website, Echo - Clear.
+                                - You can even store previous conversations as that profile's 'history'.
+                                - This can allow you to speak with absolute certainty and make points that resonate with the listener.""")
                 with ui.tab_panel(t1):
                     ui.markdown("### App Overview\n- Choose profiles or create new ones.\n- Data is stored locally for the app and backed up to SQL.")
                     ui.button("Go Home", on_click=lambda: ui.navigate.to("/")).props("color=primary")
@@ -40,7 +47,12 @@ def tutorial_page() -> None:
                     ui.markdown("### Update & SQL Sync\n- Saving updates your local `profiles.json` immediately.\n- A backup is simultaneously sent to Supabase SQL for safety.")
                 
                 with ui.tab_panel(t5):
-                    ui.markdown("### Using Pyfriend\n- Simulate conversations tailored to specific profiles.\n- Use voice-to-text or manual typing.")
+                    ui.markdown("""### Using Pyfriend
+                                - Simulate conversations tailored to specific profiles.
+                                - Use voice-to-text or manual typing.
+                                - You can now use 'tags', that allow pyfriend to focus on specific things like:
+                                    - @person(X) - focuses on person X
+                                    - @conversation(X, Y) - tries to think about whether X and Y can talk to each other perfectly.""")
                     ui.button("Go to Pyfriend", on_click =lambda: ui.navigate.to("/all_pyfriend"))
 
         ui.button("Exit Tutorial", on_click=lambda: ui.navigate.to("/")).classes("mt-4")
