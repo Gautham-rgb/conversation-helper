@@ -5,38 +5,45 @@ from CLI_convo.offline import ONLINE
 from CLI_convo.profile_storage import Profile
 from tutorial import start_tutorial
 from database import supabase
+
+DEBUG_MODE = True # Set to False for production
+
 def home() -> None:
     with shell("Dashboard", start_tutorial):
+        if DEBUG_MODE:
+            debug_log = ui.log().classes('w-full h-40 bg-gray-800 text-white p-2 mt-4').props('dark')
+
         supabase_profs: dict[str, Profile] = {}
         try:
             res = supabase.table("profiles").select("*").execute()
             raw_profs = res.data or []
-            print(f"DEBUG: Fetched raw_profs from Supabase: {raw_profs}")
+            if DEBUG_MODE: debug_log.push(f"Raw Supabase data: {raw_profs}")
 
             for rp in raw_profs:
-                p = Profile(rp.get("display_name") or rp.get("name", "Unknown"))
-                p.traits = rp.get("traits", [])
-                p.interests = rp.get("interests", [])
-                p.notes = rp.get("notes", [])
-                p.avoids = rp.get("avoids", [])
+                p = Profile(rp.get("display_name") or rp.get("name", "Unknown")) #type: ignore
+                p.traits = rp.get("traits", []) #type: ignore
+                p.interests = rp.get("interests", []) #type: ignore
+                p.notes = rp.get("notes", []) #type: ignore
+                p.avoids = rp.get("avoids", []) #type: ignore
                 from CLI_convo.profile_storage import Conversation
-                p.prev_conver = [Conversation(c["summary"], c["outcome"], c.get("date")) for c in rp.get("history", [])]
+                p.prev_conver = [Conversation(c["summary"], c["outcome"], c.get("date")) for c in rp.get("history", [])] #type: ignore
                 supabase_profs[p.name.lower()] = p
-            print(f"DEBUG: Converted supabase_profs: {supabase_profs}")
+            if DEBUG_MODE: debug_log.push(f"Converted Supabase Profiles: {supabase_profs}")
         except Exception as e:
-            print(f"Supabase fetch failed: {e}")
-            ui.notify("Could not fetch cloud profiles (using local fallback)", type="warning")
+            print(f"Supabase fetch failed: {e}") # Keep this for any potential Render logs
+            ui.notify(f"Could not fetch cloud profiles (using local fallback): {e}", type="warning", close_button="OK", timeout=5000)
+            if DEBUG_MODE: debug_log.push(f"Supabase Fetch ERROR: {e}")
 
         local_profs = Profile.load_all()
-        print(f"DEBUG: Loaded local_profs: {local_profs}")
+        if DEBUG_MODE: debug_log.push(f"Local Profiles: {local_profs}")
 
         # Merge profiles, prioritizing Supabase data
         all_profs = local_profs.copy()
         all_profs.update(supabase_profs) # Supabase profiles will overwrite local if names match
-        print(f"DEBUG: Merged all_profs (local + supabase): {all_profs}")
+        if DEBUG_MODE: debug_log.push(f"Merged All Profiles: {all_profs}")
 
         profs = sorted([p for p in all_profs.values() if p is not None], key=lambda x: x.name.lower())
-        print(f"DEBUG: Final sorted profs for display: {profs}")
+        if DEBUG_MODE: debug_log.push(f"Final Profiles for Display: {profs}")
 
         with ui.row().classes("w-full items-start justify-between gap-4"):
             with ui.column().classes("gap-1"):
