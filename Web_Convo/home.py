@@ -26,7 +26,7 @@ def home() -> None:
                 p.notes = rp.get("notes", []) #type: ignore
                 p.avoids = rp.get("avoids", []) #type: ignore
                 from CLI_convo.profile_storage import Conversation
-                p.prev_conver = [Conversation(c["summary"], c["outcome"], c.get("date")) for c in rp.get("history", [])] #type: ignore
+                p.prev_conver = [Conversation(c["summary"], c["outcome"], c.get("date")) for c in rp.get("history", [])]
                 supabase_profs[p.name.lower()] = p
             if DEBUG_MODE: debug_log.push(f"Converted Supabase Profiles: {supabase_profs}")
         except Exception as e:
