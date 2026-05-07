@@ -1,7 +1,28 @@
 from contextlib import contextmanager
-from nicegui import ui
+from nicegui import ui, app
 from app import apply_theme
-from typing import Callable, Optional
+from typing import Callable, Optional, Any
+
+def debug_overlay(data: dict[str, Any]):
+    """
+    Renders an expandable debug console at the bottom of the page.
+    Requires 'debug_mode' to be True in app.storage.user.
+    """
+    if not app.storage.user.get('debug_mode', False):
+        return
+    
+    with ui.expansion('🛠 DEBUG CONSOLE', icon='bug_report') \
+        .classes('w-full mt-8 bg-slate-900 border-t border-yellow-600/50 rounded-b-lg overflow-hidden'):
+        with ui.column().classes('p-4 text-xs font-mono gap-1'):
+            for label, value in data.items():
+                with ui.row().classes('w-full justify-between border-b border-slate-800/50 py-1 items-start'):
+                    ui.label(label).classes('text-yellow-500 font-bold')
+                    # Use markdown for the value to allow for code blocks or just better formatting
+                    val_str = str(value)
+                    if len(val_str) > 100:
+                        ui.label(val_str).classes('text-slate-300 break-all w-2/3 text-right')
+                    else:
+                        ui.label(val_str).classes('text-slate-300 w-2/3 text-right')
 
 @contextmanager
 def shell(title: str, on_tutorial: Optional[Callable] = None):

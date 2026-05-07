@@ -37,3 +37,5 @@ def admin_dev_page() -> None:
                 ui.notify(f"Clear failed: {e}", type="negative")
 
         ui.button("Clear SQL Database", icon="dangerous", on_click=clear_db).props("color=negative outline")
+
+        ui.switch("Debug Mode").bind_value(app.storage.user, "debug_mode")
