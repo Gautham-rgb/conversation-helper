@@ -54,7 +54,7 @@ def _save_manual(old: str|None, new: str|None, t: str, i: str, n: str, a: str) -
 
 async def _extract(old: str|None, clean: str, transcript: str) -> None:
     if old and old.lower() != clean.lower(): Profile.delete(old)
-    await asyncio.to_thread(build_profile, clean, transcript, clean)
+    await build_profile(clean, transcript, clean)
 
 def _save_from_transcript(old: str|None, new: str|None, transcript: str|None) -> None:
     clean = (new or "").strip()

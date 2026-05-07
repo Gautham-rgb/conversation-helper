@@ -14,10 +14,10 @@ def _parse_and_update(profile: Profile, text: str) -> Profile:
         if upd: upd(*items)
     return profile
 
-def build_profile(name: str, transcript: str, speaker: str = "") -> Profile:
+async def build_profile(name: str, transcript: str, speaker: str = "") -> Profile:
     sys = _EXTRACT_SYSTEM + (f"\nFOCUS ON: {speaker}" if speaker else "")
     p = Profile.load(name) or Profile(name)
-    txt = complete(sys, f"Transcript:\n{transcript}")
+    txt = await complete(sys, f"Transcript:\n{transcript}")
     _parse_and_update(p, txt)
     p.save()
     return p

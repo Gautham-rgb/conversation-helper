@@ -149,7 +149,7 @@ async def _answer(user_text: str) -> str:
         "If a @conversation tag was used, analyze the friction points between the two people. "
         "Give practical wording. No markdown bold."
     )
-    return await asyncio.to_thread(complete, system, user_text)
+    return await complete(system, user_text)
 
 def _speak(text: str) -> None:
     ui.run_javascript(f"const msg = new SpeechSynthesisUtterance({text!r}); window.speechSynthesis.cancel(); window.speechSynthesis.speak(msg);")

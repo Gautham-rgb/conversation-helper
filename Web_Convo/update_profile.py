@@ -35,7 +35,7 @@ def update_profile(name: str) -> None:
                 button.disable()
                 note = ui.notification("Updating profile...", spinner=True, timeout=None)
                 try:
-                    await asyncio.to_thread(build_profile, profile.name, text, profile.name)
+                    await build_profile(profile.name, text, profile.name)
                     ui.notify("Profile updated.", type="positive")
                     ui.navigate.to(f"/profile/{profile.name}")
                 except Exception as exc:

@@ -4,7 +4,7 @@ from CLI_convo.profile_storage import Profile
 from web_ai import complete
 
 
-def suggest(profile: Profile, situation: str) -> str:
+async def suggest(profile: Profile, situation: str) -> str:
     user_content = (
         f"{profile.to_prompt()}\n\n"
         f"Situation: {situation}\n\n"
@@ -16,4 +16,4 @@ def suggest(profile: Profile, situation: str) -> str:
         "Give tailored conversation suggestions based on the person's profile. "
         "No markdown bold."
     )
-    return complete(system_content, user_content)
+    return await complete(system_content, user_content)

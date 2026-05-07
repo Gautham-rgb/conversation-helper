@@ -28,8 +28,8 @@ def _get_async() -> AsyncGroq:
     return _async_client
 
 
-def complete(system: str, user: str) -> str:
-    response = _get_sync().chat.completions.create(
+async def complete(system: str, user: str) -> str:
+    response = await _get_async().chat.completions.create(
         model=CHAT_MODEL,
         messages=[
             {"role": "system", "content": system},

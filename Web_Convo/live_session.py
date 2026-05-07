@@ -22,7 +22,7 @@ def live_session(name: str) -> None:
                 if not txt: ui.notify("Describe situation.", type="warning"); return
                 btn.disable(); res.set_content("Thinking...")
                 try:
-                    ans = await asyncio.to_thread(suggest, Profile.load(p.name) or p, txt)
+                    ans = await suggest(Profile.load(p.name) or p, txt)
                     res.set_content(ans or "No suggestion.")
                 except Exception as e: res.set_content(f"Error: {e}")
                 finally: btn.enable()

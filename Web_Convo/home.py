@@ -19,8 +19,31 @@ def get_profiles_from_supabase():
     
 def home() -> None:
     with shell("Dashboard", start_tutorial):
-        res = supabase.table("profiles").select("*").execute()
-        profs = res.data or []
+        try:
+            res = supabase.table("profiles").select("*").execute()
+            raw_profs = res.data or []
+        except Exception as e:
+            print(f"Supabase fetch failed: {e}")
+            raw_profs = []
+            ui.notify("Using local profiles (Cloud sync failed)", type="warning")
+
+        # Convert raw dicts to Profile objects for consistent property access
+        profs: list[Profile] = []
+        if raw_profs:
+            for rp in raw_profs:
+                p = Profile(rp.get("display_name") or rp.get("name", "Unknown"))
+                p.traits = rp.get("traits", [])
+                p.interests = rp.get("interests", [])
+                p.notes = rp.get("notes", [])
+                p.avoids = rp.get("avoids", [])
+                # Convert history dicts back to Conversation objects
+                from CLI_convo.profile_storage import Conversation
+                p.prev_conver = [Conversation(c["summary"], c["outcome"], c.get("date")) for c in rp.get("history", [])]
+                profs.append(p)
+        else:
+            # Fallback to local profiles if Supabase is empty or failed
+            profs = sorted([p for p in Profile.load_all().values() if p is not None], key=lambda x: x.name.lower())
+
         with ui.row().classes("w-full items-start justify-between gap-4"):
             with ui.column().classes("gap-1"):
                 ui.label("People").classes("text-3xl font-bold")
@@ -29,20 +52,22 @@ def home() -> None:
                 ui.button("New Profile", icon="person_add", on_click=lambda: ui.navigate.to("/create")).props("color=positive")
                 ui.button("Ask All", icon="voice_over", on_click=lambda: ui.navigate.to("/all_pyfriend")).props("color=success")
                 ui.button("Feedback", icon="rate_review", on_click=lambda: ui.navigate.to("/feedback")).props("color=info")
+        
         if not profs:
             with ui.card().classes("w-full bg-[#151b22] p-8 items-center"):
                 ui.icon("person_search").classes("text-5xl text-slate-500")
                 ui.button("Create Profile", icon="add", on_click=lambda: ui.navigate.to("/create")).props("color=positive")
             return
+
         with ui.grid(columns=3).classes("w-full gap-4 max-[900px]:grid-cols-2 max-[640px]:grid-cols-1"):
             for p in profs:
-                latest = p.prev_conver[-1] if p.prev_conver else None  #type: ignore
-                with ui.card().classes("bg-[#151b22] p-4 cursor-pointer").on("click", lambda _=None, n=p.name: ui.navigate.to(f"/profile/{n}")): #type: ignore
-                    ui.label(p.name).classes("text-xl font-semibold") #type: ignore
-                    ui.label(", ".join(p.traits[:4]) if p.traits else "No traits").classes("text-sm text-slate-300") #type: ignore
+                latest = p.prev_conver[-1] if p.prev_conver else None
+                with ui.card().classes("bg-[#151b22] p-4 cursor-pointer").on("click", lambda _=None, n=p.name: ui.navigate.to(f"/profile/{n}")):
+                    ui.label(p.name).classes("text-xl font-semibold")
+                    ui.label(", ".join(p.traits[:4]) if p.traits else "No traits").classes("text-sm text-slate-300")
                     with ui.row().classes("gap-2"):
-                        ui.chip(f"{len(p.interests)} interests").props("outline color=blue") #type: ignore
-                        ui.chip(f"{len(p.prev_conver)} logs").props("outline color=green") #type: ignore
+                        ui.chip(f"{len(p.interests)} interests").props("outline color=blue")
+                        ui.chip(f"{len(p.prev_conver)} logs").props("outline color=green")
                     if latest:
                         ui.separator().classes("bg-slate-700")
                         ui.label(latest.summary).classes("text-sm text-slate-400 line-clamp-2")
