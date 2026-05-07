@@ -11,6 +11,7 @@ def home() -> None:
         try:
             res = supabase.table("profiles").select("*").execute()
             raw_profs = res.data or []
+            print(f"DEBUG: Fetched raw_profs from Supabase: {raw_profs}")
 
             for rp in raw_profs:
                 p = Profile(rp.get("display_name") or rp.get("name", "Unknown"))
@@ -21,17 +22,21 @@ def home() -> None:
                 from CLI_convo.profile_storage import Conversation
                 p.prev_conver = [Conversation(c["summary"], c["outcome"], c.get("date")) for c in rp.get("history", [])]
                 supabase_profs[p.name.lower()] = p
+            print(f"DEBUG: Converted supabase_profs: {supabase_profs}")
         except Exception as e:
             print(f"Supabase fetch failed: {e}")
             ui.notify("Could not fetch cloud profiles (using local fallback)", type="warning")
 
         local_profs = Profile.load_all()
+        print(f"DEBUG: Loaded local_profs: {local_profs}")
 
         # Merge profiles, prioritizing Supabase data
         all_profs = local_profs.copy()
         all_profs.update(supabase_profs) # Supabase profiles will overwrite local if names match
+        print(f"DEBUG: Merged all_profs (local + supabase): {all_profs}")
 
         profs = sorted([p for p in all_profs.values() if p is not None], key=lambda x: x.name.lower())
+        print(f"DEBUG: Final sorted profs for display: {profs}")
 
         with ui.row().classes("w-full items-start justify-between gap-4"):
             with ui.column().classes("gap-1"):
