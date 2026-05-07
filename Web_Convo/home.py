@@ -5,44 +5,33 @@ from CLI_convo.offline import ONLINE
 from CLI_convo.profile_storage import Profile
 from tutorial import start_tutorial
 from database import supabase
-def _profiles() -> list[Profile]:
-    return sorted([p for p in Profile.load_all().values() if p is not None], key=lambda x: x.name.lower())
-
-def get_profiles_from_supabase():
-    try:
-        # Make sure you are using .select("*")
-        response = supabase.table("profiles").select("*").execute()
-        return response.data
-    except Exception as e:
-        print(f"Fetch failed: {e}")
-        return []
-    
 def home() -> None:
     with shell("Dashboard", start_tutorial):
+        supabase_profs: dict[str, Profile] = {}
         try:
             res = supabase.table("profiles").select("*").execute()
             raw_profs = res.data or []
-        except Exception as e:
-            print(f"Supabase fetch failed: {e}")
-            raw_profs = []
-            ui.notify("Using local profiles (Cloud sync failed)", type="warning")
 
-        # Convert raw dicts to Profile objects for consistent property access
-        profs: list[Profile] = []
-        if raw_profs:
             for rp in raw_profs:
                 p = Profile(rp.get("display_name") or rp.get("name", "Unknown"))
                 p.traits = rp.get("traits", [])
                 p.interests = rp.get("interests", [])
                 p.notes = rp.get("notes", [])
                 p.avoids = rp.get("avoids", [])
-                # Convert history dicts back to Conversation objects
                 from CLI_convo.profile_storage import Conversation
                 p.prev_conver = [Conversation(c["summary"], c["outcome"], c.get("date")) for c in rp.get("history", [])]
-                profs.append(p)
-        else:
-            # Fallback to local profiles if Supabase is empty or failed
-            profs = sorted([p for p in Profile.load_all().values() if p is not None], key=lambda x: x.name.lower())
+                supabase_profs[p.name.lower()] = p
+        except Exception as e:
+            print(f"Supabase fetch failed: {e}")
+            ui.notify("Could not fetch cloud profiles (using local fallback)", type="warning")
+
+        local_profs = Profile.load_all()
+
+        # Merge profiles, prioritizing Supabase data
+        all_profs = local_profs.copy()
+        all_profs.update(supabase_profs) # Supabase profiles will overwrite local if names match
+
+        profs = sorted([p for p in all_profs.values() if p is not None], key=lambda x: x.name.lower())
 
         with ui.row().classes("w-full items-start justify-between gap-4"):
             with ui.column().classes("gap-1"):
