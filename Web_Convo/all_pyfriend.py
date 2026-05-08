@@ -17,7 +17,7 @@ def all_pyfriend_page() -> None:
         ui.label("Speak or type a situation. Use @person(Name) or @conversation(A, B) for cloud-sync context.").classes("text-slate-400")
 
         with ui.card().classes("w-full bg-[#151b22] rounded-lg p-5 gap-4"):
-            output = ui.log(max_lines=200).classes("w-full h-72 bg-[#101418] border border-slate-700 rounded p-3")
+            output = ui.log(5000).classes("w-full h-72 bg-[#101418] border border-slate-700 rounded p-3 break-words").style("white-space: pre-wrap")
             typed = ui.textarea("Type instead of speaking").classes("w-full").props("outlined autogrow")
             with ui.row().classes("gap-2 items-center"):
                 ask_button = ui.button("Ask", icon="send").props("color=primary")
@@ -33,8 +33,9 @@ def all_pyfriend_page() -> None:
             status.set_text("Thinking...")
             try:
                 response = await _answer(text)
-                output.push(f"You: {text}")
+                output.push(f"You: {text}\n")
                 output.push(f"AI: {response}")
+                output.run_method('scrollTo', 0, 1000000)
                 _speak(response)
                 typed.value = ""
             except Exception as exc:
