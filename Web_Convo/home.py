@@ -59,6 +59,7 @@ def home() -> None:
                         with ui.row().classes("gap-2"):
                             ui.chip(f"{len(p.interests)} interests").props("outline color=blue")
                             ui.chip(f"{len(p.prev_conver)} logs").props("outline color=green")
+                            ui.button(f"T0alk about {p.name}", on_click = ui.navigate.to(f"/pyfriend/{p.name}"))
                         if latest:
                             ui.separator().classes("bg-slate-700")
                             ui.label(latest.summary).classes("text-sm text-slate-400 line-clamp-2")

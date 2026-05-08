@@ -19,12 +19,18 @@ def profile_page(name: str) -> None:
             with ui.row().classes("gap-2"):
                 ui.button("Edit", icon="edit", on_click=lambda: ui.navigate.to(f"/edit/{p.name}")).props("outline color=warning")
                 ui.button("Delete", icon="delete", on_click=lambda: _confirm_delete(p.name)).props("outline color=negative")
+
         with ui.row().classes("w-full gap-3"):
             ui.button("Live Session", icon="psychology", on_click=lambda: ui.navigate.to(f"/live/{p.name}")).props("color=primary")
             ui.button("Update Profile", icon="auto_fix_high", on_click=lambda: ui.navigate.to(f"/update/{p.name}")).props("color=info")
             ui.button("History", icon="history", on_click=lambda: ui.navigate.to(f"/history/{p.name}")).props("color=secondary")
+
         with ui.grid(columns=2).classes("w-full gap-4 max-[720px]:grid-cols-1"):
-            for lbl, itms, clr, icn in [("Traits", p.traits, "blue", "badge"), ("Interests", p.interests, "green", "interests"), ("Notes", p.notes, "amber", "notes"), ("Avoids", p.avoids, "red", "do_not_disturb_on")]:
+            for lbl, itms, clr, icn in [("Traits", p.traits, "blue", "badge"), 
+                                        ("Interests", p.interests, "green", "interests"), 
+                                        ("Notes", p.notes, "amber", "notes"), 
+                                        ("Avoids", p.avoids, "red", "do_not_disturb_on")]:
+                
                 with ui.card().classes("bg-[#151b22] p-4 gap-3"):
                     with ui.row().classes("items-center gap-2"):
                         ui.icon(icn).classes("text-slate-400"); ui.label(lbl).classes("text-lg font-semibold")
