@@ -6,6 +6,7 @@ from nicegui import ui, app
 from fastapi.responses import FileResponse
 
 import all_pyfriend
+import pyfriend
 import create_profile
 import history
 import home
