@@ -71,6 +71,40 @@ def create_profile(name=None):
         show(error_page, error_message=str(e))
 
 
+def _build_rag_for_profile(profile):
+    """Automatically create RAG data from profile information."""
+    try:
+        from CLI_convo.rag_storage import RAGStorage
+        
+        texts = []
+        # Add traits
+        for trait in profile.traits:
+            texts.append(f"Trait: {trait}")
+        # Add interests
+        for interest in profile.interests:
+            texts.append(f"Interest: {interest}")
+        # Add notes
+        for note in profile.notes:
+            texts.append(f"Note: {note}")
+        # Add avoids
+        for avoid in profile.avoids:
+            texts.append(f"Avoid: {avoid}")
+        
+        if texts:
+            rag = RAGStorage(profile.name)
+            rag.add_texts(texts, source_type="profile_creation")
+            print(f"Created RAG for '{profile.name}': {len(texts)} entries")
+            
+            # Sync to cloud
+            try:
+                from sql_sync import sync_rag_data_to_sql
+                sync_rag_data_to_sql(profile.name, rag.metadata)
+            except Exception as e:
+                print(f"Cloud RAG sync failed: {e}")
+    except Exception as e:
+        print(f"Failed to build RAG: {e}")
+
+
 def _save_manual(name_entry, entries, old_name):
     pname = name_entry.get().strip()
     if not pname:
@@ -95,6 +129,9 @@ def _save_manual(name_entry, entries, old_name):
     p.add_note(*parse("notes"))
     p.add_avoid(*parse("avoids"))
     p.save()
+
+    # Build RAG data automatically
+    _build_rag_for_profile(p)
 
     # Sync to cloud
     try:

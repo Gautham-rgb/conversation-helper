@@ -1,19 +1,34 @@
-nicegui==2.24.2
-groq==1.2.0
-python-dotenv==1.2.2
-supabase
-# --- AI & Inference (Torch Backend) ---
-keras-hub>=0.17.0        # Gemma 4 preset loader
-torch>=2.3.0             # Primary ML engine
-torchvision
-torchaudio               # Necessary for Whisper/Audio processing
-groq>=0.9.0              # Cloud API
-openai-whisper           # Local audio transcription
+# ============================================================
+# COMPLETE PROJECT DEPENDENCIES
+# Covers: Web_Convo, CLI_convo, GUI_convo
+# ============================================================
+
+# --- Core Frameworks ---
+nicegui==2.24.2          # Web UI framework (Web_Convo)
+groq==1.2.0              # Groq API client (all modules)
+supabase                 # Cloud database (Web_Convo, GUI_convo)
+python-dotenv==1.2.2     # Environment variables
+
+# --- AI & Machine Learning ---
+torch>=2.3.0             # Primary ML engine (CLI_convo)
+torchvision              # Vision utilities (CLI_convo)
+torchaudio               # Audio processing (CLI_convo)
+keras-hub>=0.17.0        # Gemma 4 preset loader (CLI_convo)
+openai-whisper           # Local audio transcription (CLI_convo)
+
+# --- RAG (Retrieval-Augmented Generation) ---
+sentence-transformers    # Embedding models for RAG
+faiss-cpu                # Vector search for RAG
 
 # --- Audio Processing ---
-sounddevice>=0.4.6       # Mic recording
-scipy>=1.12.0            # WAV file generation
-numpy>=1.26.0
+sounddevice>=0.4.6       # Microphone recording (CLI_convo, GUI_convo)
+soundfile                # Audio file I/O (GUI_convo)
+scipy>=1.12.0            # WAV file generation (CLI_convo)
+numpy>=1.26.0            # Numerical computing (all modules)
+pyttsx3                  # Text-to-speech offline (GUI_convo)
+
+# --- Desktop GUI ---
+ttkbootstrap             # Modern Tkinter themes (GUI_convo)
 
 # --- Utilities ---
-pathlib>=1.0.1           # Path management
+pathlib>=1.0.1           # Path management (CLI_convo)

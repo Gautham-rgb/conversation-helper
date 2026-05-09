@@ -3,7 +3,8 @@ from database import supabase
 from CLI_convo.profile_storage import Profile, storage_path
 
 def sync_new_profile(profile_obj: Profile):
-    """Saves a profile to Supabase SQL simultaneously."""
+    """Saves a profile to Supabase SQL simultaneously.
+    Does NOT overwrite the rag column - that's handled by sync_rag_data_to_sql."""
     sql_data = {
         "name": profile_obj.name.lower(),
         "display_name": profile_obj.name,
@@ -11,8 +12,7 @@ def sync_new_profile(profile_obj: Profile):
         "notes": profile_obj.notes,
         "interests": profile_obj.interests,
         "avoids": profile_obj.avoids,
-        "history": [c.to_dict() for c in profile_obj.prev_conver],
-        "rag": []  # Initialize empty RAG column, will be populated by sync_rag_data
+        "history": [c.to_dict() for c in profile_obj.prev_conver]
     }
     try:
         supabase.table("profiles").upsert(sql_data, on_conflict="name").execute()

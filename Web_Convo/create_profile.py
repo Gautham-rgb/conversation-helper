@@ -4,9 +4,10 @@ from nicegui import ui
 from ui_parts import back_button, shell
 from app import parse_list
 from CLI_convo.profile_storage import Profile
+from CLI_convo.rag_storage import RAGStorage
 from profile_builder import build_profile
 from database import supabase
-from sql_sync import sync_new_profile
+from sql_sync import sync_new_profile, sync_rag_data_to_sql
 
 @ui.page("/create")
 def create_new() -> None:
@@ -42,15 +43,58 @@ def profile_form(name: str | None = None) -> None:
                     transcript = ui.textarea("Conversation transcript").classes("w-full").props("outlined autogrow")
                     ui.button("Extract and Save", icon="auto_fix_high", on_click=lambda: _save_from_transcript(name, tr_name.value, transcript.value)).props("color=positive")
 
+def _build_rag_for_profile(profile: Profile) -> None:
+    """Automatically create RAG data from profile information."""
+    try:
+        texts = []
+        for trait in profile.traits:
+            texts.append(f"Trait: {trait}")
+        for interest in profile.interests:
+            texts.append(f"Interest: {interest}")
+        for note in profile.notes:
+            texts.append(f"Note: {note}")
+        for avoid in profile.avoids:
+            texts.append(f"Avoid: {avoid}")
+        
+        if texts:
+            rag = RAGStorage(profile.name)
+            rag.add_texts(texts, source_type="profile_creation")
+            print(f"Created RAG for '{profile.name}': {len(texts)} entries")
+            sync_rag_data_to_sql(profile.name, rag.metadata)
+    except Exception as e:
+        print(f"Failed to build RAG: {e}")
+
+
 def _save_manual(old: str|None, new: str|None, t: str, i: str, n: str, a: str) -> None:
     clean = (new or "").strip()
-    if not clean: ui.notify("Name required.", type="negative"); return
-    if old and old.lower() != clean.lower(): Profile.delete(old)
+    if not clean:
+        ui.notify("Name required.", type="negative")
+        return
+    if old and old.lower() != clean.lower():
+        Profile.delete(old)
     p = Profile(clean)
-    p.add_trait(*parse_list(t)); p.add_interest(*parse_list(i)); p.add_note(*parse_list(n)); p.add_avoid(*parse_list(a))
+    p.add_trait(*parse_list(t))
+    p.add_interest(*parse_list(i))
+    p.add_note(*parse_list(n))
+    p.add_avoid(*parse_list(a))
+    
+    # 1. Save locally and build RAG (profile_storage.py handles RAG sync)
     p.save()
+    
+    # 2. Create/update profile in Supabase (without rag column to avoid overwriting)
     sync_new_profile(p)
-    ui.notify(f'Saved "{clean}".', type="positive"); ui.navigate.to(f"/profile/{clean}")
+    
+    # 3. Sync RAG data to Supabase (row exists now)
+    try:
+        rag = RAGStorage(p.name)
+        if rag.metadata:
+            sync_rag_data_to_sql(p.name, rag.metadata)
+            print(f"Synced RAG to cloud for '{p.name}': {len(rag.metadata)} entries")
+    except Exception as e:
+        print(f"Failed to sync RAG to cloud: {e}")
+    
+    ui.notify(f'Saved "{clean}".', type="positive")
+    ui.navigate.to(f"/profile/{clean}")
 
 async def _extract(old: str|None, clean: str, transcript: str) -> None:
     if old and old.lower() != clean.lower(): Profile.delete(old)

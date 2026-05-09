@@ -1,4 +1,26 @@
-nicegui==2.24.2
-groq==1.2.0
-python-dotenv==1.2.2
-supabase
+# ============================================================
+# WEB DEPLOYMENT DEPENDENCIES (Render/Heroku/Cloud)
+# Includes RAG support for Web_Convo
+# Excludes heavy local ML (Gemma, Whisper) - uses cloud APIs
+# ============================================================
+
+# --- Core Web Framework ---
+nicegui==2.24.2          # Web UI framework
+
+# --- Cloud Database ---
+supabase                 # Supabase client for cloud sync
+
+# --- AI API ---
+groq==1.2.0              # Groq API client for cloud AI
+
+# --- Environment ---
+python-dotenv==1.2.2     # Environment variable management
+
+# --- RAG (Retrieval-Augmented Generation) ---
+sentence-transformers    # Embedding models for RAG
+faiss-cpu                # Vector search for RAG
+numpy>=1.26.0            # Required for RAG operations
+
+# --- Web Server ---
+fastapi                  # Required by NiceGUI for deployment
+uvicorn                  # ASGI server for NiceGUI
