@@ -81,6 +81,14 @@ def _delete(name):
     if messagebox.askyesno("Delete", f"Delete {name}?"):
         from CLI_convo.profile_storage import Profile
         Profile.delete(name)
+        
+        # Also delete from cloud
+        try:
+            from sql_sync import delete_profile_from_sql
+            delete_profile_from_sql(name)
+        except Exception as e:
+            print(f"Cloud delete failed: {e}")
+        
         from home import home
         show(home)
 

@@ -7,6 +7,7 @@ from nicegui import ui
 from ui_parts import back_button, shell
 from CLI_convo.profile_storage import Profile
 from web_ai import complete, transcribe
+from sql_sync import get_rag_data_from_sql
 
 
 @ui.page("/pyfriend/{name}")
@@ -108,10 +109,56 @@ def pyfriend_page(name: str) -> None:
         rec_button.on("mouseup", lambda: ui.run_javascript("stopWebConvoRecording()"))
         rec_button.on("mouseleave", lambda: ui.run_javascript("stopWebConvoRecording()"))
 
-async def _answer_personalized(profile: Profile, user_text: str) -> str:
-    # This function is tailored to use a single profile's context
-    context = profile.to_prompt(query=user_text)
+def _rag_search(rag_data: list[dict], query: str, top_k: int = 5) -> list[str]:
+    """Simple text-based search through RAG data from Supabase."""
+    if not rag_data:
+        return []
+    
+    query_lower = query.lower()
+    scored_results = []
+    
+    for entry in rag_data:
+        text = entry.get("text", "")
+        text_lower = text.lower()
+        
+        # Simple scoring: count keyword matches
+        score = 0
+        query_words = query_lower.split()
+        for word in query_words:
+            if word in text_lower:
+                score += 1
+        
+        if score > 0:
+            scored_results.append((score, text))
+    
+    # Sort by score descending and return top_k texts
+    scored_results.sort(key=lambda x: x[0], reverse=True)
+    return [text for _, text in scored_results[:top_k]]
 
+async def _answer_personalized(profile: Profile, user_text: str) -> str:
+    # Try to get RAG data from Supabase first
+    rag_data = get_rag_data_from_sql(profile.name)
+    
+    # Build context with Supabase RAG if available, otherwise use local
+    lines = [f"Name: {profile.name}"]
+    for k, v in [("Traits", profile.traits), ("Interests", profile.interests), ("Notes", profile.notes), ("Avoid", profile.avoids)]:
+        if v: lines.append(f"{k}: {', '.join(v)}")
+    
+    if rag_data:
+        rag_results = _rag_search(rag_data, user_text, top_k=5)
+        if rag_results:
+            lines.append("\nRelevant Context from Cloud History/Notes:")
+            for res in rag_results:
+                lines.append(f" - {res}")
+    else:
+        # Fallback to local RAG
+        context = profile.to_prompt(query=user_text)
+        return await complete(
+            f"Be a concise social intelligence helper. Focus on the provided profile:\n{context}\nGive practical wording. No markdown.",
+            user_text
+        )
+    
+    context = "\n".join(lines)
     system = (
         f"Be a concise social intelligence helper. Focus on the provided profile:\n{context}\n"
         "Give practical wording. No markdown."

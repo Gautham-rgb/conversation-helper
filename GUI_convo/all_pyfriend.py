@@ -1,3 +1,4 @@
+"""Ask All - AI conversation assistant across all profiles with tag support."""
 import sys, os
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.append(parent_dir)
@@ -6,17 +7,61 @@ import sounddevice as sd
 import soundfile as sf
 import numpy as np
 import tempfile
+import re
 from CLI_convo.profile_storage import Profile
 from ttkbootstrap.widgets.scrolled import ScrolledText
 import tkinter as tk, ttkbootstrap as ttk
 from app import show, root
 from CLI_convo.config import api_key
-from CLI_convo.offline import ONLINE, groq_client, get_text_model, CHAT_MODEL
-from CLI_convo.offline import WHISPER_MODEL, generate, transcribe_offline, gemma_prompt
+from CLI_convo.offline import ONLINE, groq_client, generate, transcribe_offline, gemma_prompt, CHAT_MODEL, WHISPER_MODEL
 from groq import AsyncGroq
 import asyncio
 import threading
 import pyttsx3
+
+def _profile_value(profile, field: str) -> str:
+    """Safely extracts fields from dict, object, or list/tuple."""
+    if profile is None:
+        return ""
+    if isinstance(profile, dict):
+        return str(profile.get(field, "") or "")
+    if hasattr(profile, field):
+        return str(getattr(profile, field) or "")
+    # Handle raw list/tuple data from SQL if necessary
+    if isinstance(profile, (list, tuple)):
+        mapping = {"name": 0, "traits": 1, "avoids": 2}
+        index = mapping.get(field)
+        if index is not None and index < len(profile):
+            return str(profile[index] or "")
+    return ""
+
+def _rag_search(rag_data: list[dict], query: str, top_k: int = 5) -> list[str]:
+    """Simple text-based search through RAG data from Supabase.
+    Falls back to returning most recent entries if no match found."""
+    if not rag_data:
+        return []
+    
+    query_lower = query.lower()
+    scored_results = []
+    
+    for entry in rag_data:
+        text = entry.get("text", "")
+        text_lower = text.lower()
+        
+        # Simple scoring: count keyword matches
+        score = 0
+        query_words = query_lower.split()
+        for word in query_words:
+            if word in text_lower:
+                score += 1
+        
+        if score > 0:
+            scored_results.append((score, text))
+    
+    # Sort by score descending and return top_k texts
+    scored_results.sort(key=lambda x: x[0], reverse=True)
+    return [text for _, text in scored_results[:top_k]]
+
 
 def all_pyfriend_page():
     try:
@@ -26,6 +71,12 @@ def all_pyfriend_page():
 
         back = ttk.Button(root, text="← Back", command=_back, bootstyle="secondary-link")
         back.pack(side="top", anchor="nw", padx=10, pady=5)
+
+        # Title and instructions
+        ttk.Label(root, text="Ask Pyfriend - All Profiles",
+                  font=("Segoe UI", 18, "bold")).pack(anchor="w", padx=16, pady=(10, 0))
+        ttk.Label(root, text="Speak or type a situation. Use @person(Name) or @conversation(A, B) for focused context.",
+                  font=("Segoe UI", 9), bootstyle="secondary", wraplength=600).pack(anchor="w", padx=16, pady=(0, 10))
 
         rec_status = ttk.StringVar(value="Hold the 'R' key or engage the button to speak.")
         status_label = ttk.Label(root, textvariable=rec_status, bootstyle="inverse-secondary")
@@ -82,13 +133,6 @@ def all_pyfriend_page():
                 asyncio.run_coroutine_threadsafe(send_to_groq(temp_path), loop)
 
         async def send_to_groq(path):
-            all_profiles = Profile.load_all()    # removed duplicate load
-            if not all_profiles:
-                return
-
-            # Build context using to_prompt() so Conversation objects render correctly
-            p = "\n".join(v.to_prompt() + f"\n{'-'*20}" for v in all_profiles.values()) #type: ignore
-
             try:
                 # Transcribe audio
                 if ONLINE:
@@ -105,29 +149,8 @@ def all_pyfriend_page():
                         rec_status.set("⚠️ Transcription failed. Speak clearly and try again.")
                         return
 
-                # Generate response
-                if ONLINE:
-                    reply = await client.chat.completions.create( #type: ignore
-                        model=CHAT_MODEL,
-                        messages=[
-                            {"role": "system", "content": (
-                                f"Be a general social intelligence helper. "
-                                f"Here are the people in the room:\n{p}\n"
-                                f"Be concise and direct. No markdown bold."
-                            )},
-                            {"role": "user", "content": user_text}
-                        ]
-                    )
-                    response_text = reply.choices[0].message.content or ""
-                else:
-                    # Use offline text generation
-                    system_msg = (
-                        f"Be a general social intelligence helper. "
-                        f"Here are the people in the room:\n{p}\n"
-                        f"Be concise and direct. No markdown bold."
-                    )
-                    prompt = gemma_prompt(system_msg, user_text)
-                    response_text = generate(prompt, max_length=256)
+                # Generate response with tag support
+                response_text = await _answer(user_text)
 
                 root.after(0, lambda: output.text.insert("end", f"You: {user_text}\nAI: {response_text}\n\n"))
                 root.after(0, lambda: output.text.see("end"))
@@ -145,14 +168,81 @@ def all_pyfriend_page():
                 if os.path.exists(path):
                     os.remove(path)
 
+        async def _answer(user_text: str) -> str:
+            """Process user query with tag support and RAG."""
+            person_tags = re.findall(r"@person\((.*?)\)", user_text)
+            convo_tags = re.findall(r"@conversation\((.*?),(.*?)\)", user_text)
+            context_parts = []
+
+            if person_tags or convo_tags:
+                # Use cloud data for tagged queries
+                for name in person_tags:
+                    try:
+                        from sql_sync import get_profile_from_sql, get_rag_data_from_sql
+                        p = get_profile_from_sql(name.strip())
+                        if p:
+                            # Try to get RAG data from Supabase for better context
+                            rag_data = p.get("rag", [])  # type: ignore
+                            rag_results = _rag_search(rag_data, user_text, top_k=3)  # type: ignore
+                            
+                            traits = _profile_value(p, 'traits')
+                            avoids = _profile_value(p, 'avoids')
+                            context_line = f"FOCUS: {_profile_value(p, 'name')} (Traits: {traits}, Avoid: {avoids})"
+                            
+                            if rag_results:
+                                context_line += "\nRelevant Context:\n" + "\n".join(f" - {r}" for r in rag_results)
+                            
+                            context_parts.append(context_line)
+                    except Exception as e:
+                        print(f"Error fetching profile for tag: {e}")
+                
+                for n1, n2 in convo_tags:
+                    try:
+                        from sql_sync import get_profile_from_sql
+                        p1 = get_profile_from_sql(n1.strip())
+                        p2 = get_profile_from_sql(n2.strip())
+                        if p1 and p2:
+                            context_parts.append(
+                                f"SIMULATION: Interaction between {_profile_value(p1, 'name')} and {_profile_value(p2, 'name')}. "
+                                f"{_profile_value(p1, 'name')} is {_profile_value(p1, 'traits')} while {_profile_value(p2, 'name')} is {_profile_value(p2, 'traits')}."
+                            )
+                    except Exception as e:
+                        print(f"Error fetching profiles for conversation tag: {e}")
+                
+                context = "\n".join(context_parts)
+            else:
+                # No tags - use all local profiles
+                all_profiles = Profile.load_all()
+                if all_profiles:
+                    context = "\n\n".join(v.to_prompt() for v in all_profiles.values())  # type: ignore
+                else:
+                    context = "No saved profiles yet."
+
+            system = (
+                f"Be a concise social intelligence helper. Context provided:\n{context}\n\n"
+                "If a @conversation tag was used, analyze the friction points between the two people. "
+                "Give practical wording. No markdown bold."
+            )
+
+            if ONLINE:
+                reply = await client.chat.completions.create( #type: ignore
+                    model=CHAT_MODEL,
+                    messages=[
+                        {"role": "system", "content": system},
+                        {"role": "user", "content": user_text}
+                    ]
+                )
+                return reply.choices[0].message.content or ""
+            else:
+                prompt = gemma_prompt(system, user_text)
+                return generate(prompt, max_length=256)
+
         loop = asyncio.new_event_loop()
         threading.Thread(target=loop.run_forever, daemon=True).start()
         
     except Exception as e:
         from error_page import error_page
         show(error_page, error_message=e)
-    
-    
 
 
 def _back():

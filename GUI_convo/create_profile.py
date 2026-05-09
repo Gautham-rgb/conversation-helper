@@ -82,6 +82,12 @@ def _save_manual(name_entry, entries, old_name):
 
     if old_name and old_name.lower() != pname.lower():
         Profile.delete(old_name)
+        # Also delete from cloud if it exists
+        try:
+            from sql_sync import delete_profile_from_sql
+            delete_profile_from_sql(old_name)
+        except Exception as e:
+            print(f"Cloud delete failed: {e}")
 
     p = Profile(pname)
     p.add_trait(*parse("traits"))
@@ -89,6 +95,13 @@ def _save_manual(name_entry, entries, old_name):
     p.add_note(*parse("notes"))
     p.add_avoid(*parse("avoids"))
     p.save()
+
+    # Sync to cloud
+    try:
+        from sql_sync import sync_new_profile
+        sync_new_profile(p)
+    except Exception as e:
+        print(f"Cloud sync failed: {e}")
 
     from profile_page import profile_page
     show(profile_page, name=pname)

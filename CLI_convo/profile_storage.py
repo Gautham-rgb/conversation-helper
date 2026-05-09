@@ -56,6 +56,14 @@ class Profile:
         
         # Trigger RAG rebuild
         self.rag.rebuild_from_profile(self)
+        
+        # Sync RAG data to Supabase
+        try:
+            from Web_Convo.sql_sync import sync_rag_data_to_sql
+            rag_entries = self.rag.metadata  # Get the metadata list from RAGStorage
+            sync_rag_data_to_sql(self.name, rag_entries)
+        except Exception as e:
+            print(f"Failed to sync RAG to Supabase: {e}")
 
     @staticmethod
     def load_all_raw():

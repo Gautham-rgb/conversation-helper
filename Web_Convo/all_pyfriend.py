@@ -7,7 +7,7 @@ from nicegui import ui
 from ui_parts import back_button, shell
 from CLI_convo.profile_storage import Profile
 from web_ai import complete, transcribe
-from sql_sync import get_profile_from_sql
+from sql_sync import get_profile_from_sql, get_rag_data_from_sql
 
 @ui.page("/all_pyfriend")
 def all_pyfriend_page() -> None:
@@ -118,6 +118,33 @@ def _profile_value(profile, field: str) -> str:
             return str(profile[index] or "")
     return ""
 
+def _rag_search(rag_data: list[dict], query: str, top_k: int = 5) -> list[str]:
+    """Simple text-based search through RAG data from Supabase.
+    Falls back to returning most recent entries if no match found."""
+    if not rag_data:
+        return []
+    
+    query_lower = query.lower()
+    scored_results = []
+    
+    for entry in rag_data:
+        text = entry.get("text", "")
+        text_lower = text.lower()
+        
+        # Simple scoring: count keyword matches
+        score = 0
+        query_words = query_lower.split()
+        for word in query_words:
+            if word in text_lower:
+                score += 1
+        
+        if score > 0:
+            scored_results.append((score, text))
+    
+    # Sort by score descending and return top_k texts
+    scored_results.sort(key=lambda x: x[0], reverse=True)
+    return [text for _, text in scored_results[:top_k]]
+
 async def _answer(user_text: str) -> str:
     person_tags = re.findall(r"@person\((.*?)\)", user_text)
     convo_tags = re.findall(r"@conversation\((.*?),(.*?)\)", user_text)
@@ -127,15 +154,23 @@ async def _answer(user_text: str) -> str:
         for name in person_tags:
             p = get_profile_from_sql(name.strip())
             if p:
-                context_parts.append(
-                    f"FOCUS: {_profile_value(p, 'name')} (Traits: {_profile_value(p, 'traits')}, Avoid: {_profile_value(p, 'avoids')})"
-                )
+                # Try to get RAG data from Supabase for better context
+                rag_data = p.get("rag", []) #type: ignore
+                rag_results = _rag_search(rag_data, user_text, top_k=3) #type: ignore
+                
+                traits = _profile_value(p, 'traits')
+                avoids = _profile_value(p, 'avoids')
+                context_line = f"FOCUS: {_profile_value(p, 'name')} (Traits: {traits}, Avoid: {avoids})"
+                
+                if rag_results:
+                    context_line += "\nRelevant Context:\n" + "\n".join(f" - {r}" for r in rag_results)
+                
+                context_parts.append(context_line)
         
         for n1, n2 in convo_tags:
             p1 = get_profile_from_sql(n1.strip())
             p2 = get_profile_from_sql(n2.strip())
             if p1 and p2:
-                # FIXED: Added missing closing quote and parenthesis here
                 context_parts.append(
                     f"SIMULATION: Interaction between {_profile_value(p1, 'name')} and {_profile_value(p2, 'name')}. "
                     f"{_profile_value(p1, 'name')} is {_profile_value(p1, 'traits')} while {_profile_value(p2, 'name')} is {_profile_value(p2, 'traits')}."

@@ -1,4 +1,6 @@
+"""Live Session - Real-time AI suggestions during conversations with cloud sync."""
 import tkinter as tk
+import tkinter.ttk as std_ttk
 import ttkbootstrap as ttk
 from ttkbootstrap.widgets.scrolled import ScrolledText
 import threading
@@ -36,18 +38,33 @@ def live_session(name=""):
         result_box = ScrolledText(root, height=10, autohide=True, state="disabled", wrap="word")
         result_box.pack(fill="both", expand=True, padx=16, pady=4)
 
-        # Log section
-        log_row = ttk.Frame(root, padding=8)
-        log_row.pack(fill="x", padx=16)
-        summary_entry = ttk.Entry(log_row, width=50)
-        summary_entry.pack(side="left", fill="x", expand=True, padx=(0, 8))
+        # Log section with cloud sync
+        log_frame = ttk.Frame(root, padding=12, bootstyle="light")
+        log_frame.pack(fill="x", padx=16, pady=12)
+        
+        # Title for log section
+        ttk.Label(log_frame, text="Log This Conversation", 
+                  font=("Segoe UI", 11, "bold")).pack(anchor="w")
+        std_ttk.Separator(log_frame, orient="horizontal").pack(fill="x", pady=(0, 8))
 
+        ttk.Label(log_frame, text="Summary:", bootstyle="secondary").pack(anchor="w")
+        summary_entry = ttk.Entry(log_frame, width=60)
+        summary_entry.pack(fill="x", pady=(0, 8))
+
+        ttk.Label(log_frame, text="Outcome:", bootstyle="secondary").pack(anchor="w")
+        outcome_frame = ttk.Frame(log_frame)
+        outcome_frame.pack(fill="x", pady=(0, 8))
+        
         outcome_var = ttk.StringVar(value="neutral")
-        ttk.Combobox(log_row, textvariable=outcome_var,
-                     values=["good", "neutral", "bad"], width=12).pack(side="left", padx=4)
+        ttk.Radiobutton(outcome_frame, text="Good", variable=outcome_var, 
+                        value="good", bootstyle="success").pack(side="left", padx=4)
+        ttk.Radiobutton(outcome_frame, text="Neutral", variable=outcome_var, 
+                        value="neutral", bootstyle="secondary").pack(side="left", padx=4)
+        ttk.Radiobutton(outcome_frame, text="Bad", variable=outcome_var, 
+                        value="bad", bootstyle="danger").pack(side="left", padx=4)
 
-        ttk.Button(log_row, text="Log Conversation", bootstyle="success",
-                   command=lambda: _log(profile, summary_entry, outcome_var)).pack(side="left")
+        log_status = ttk.Label(log_frame, text="", bootstyle="secondary")
+        log_status.pack(anchor="w", pady=(4, 0))
 
         def get_suggestion():
             situation = get_scrolled_text(situation_box)
@@ -68,6 +85,31 @@ def live_session(name=""):
 
             threading.Thread(target=task, daemon=True).start()
 
+        def log_conversation():
+            summary = summary_entry.get().strip()
+            if not summary:
+                log_status.config(text="⚠️ Summary required", bootstyle="warning")
+                return
+
+            # Add conversation to profile
+            profile.add_conversation(summary, outcome_var.get())
+            profile.save()
+
+            # Sync to cloud
+            cloud_msg = ""
+            try:
+                from sql_sync import sync_new_profile
+                sync_new_profile(profile)
+                cloud_msg = " ✓ Saved to cloud"
+            except Exception as e:
+                cloud_msg = f" ⚠️ Cloud sync failed: {e}"
+
+            summary_entry.delete(0, "end")
+            log_status.config(text=f"✅ Logged{cloud_msg}", bootstyle="success")
+
+        ttk.Button(log_frame, text="Save Log", bootstyle="success",
+                   command=log_conversation).pack(anchor="w")
+
         suggest_btn.config(command=get_suggestion)
         # Ctrl+Enter support
         situation_box.text.bind("<Control-Return>", lambda e: get_suggestion())
@@ -75,14 +117,6 @@ def live_session(name=""):
     except Exception as e:
         from error_page import error_page
         show(error_page, error_message=str(e))
-
-
-def _log(profile, summary_entry, outcome_var):
-    summary = summary_entry.get().strip()
-    if summary:
-        profile.add_conversation(summary, outcome_var.get())
-        profile.save()
-        summary_entry.delete(0, "end")
 
 
 def _back(name):
