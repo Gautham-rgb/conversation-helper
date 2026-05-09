@@ -78,10 +78,10 @@ def _save_manual(old: str|None, new: str|None, t: str, i: str, n: str, a: str) -
     p.add_note(*parse_list(n))
     p.add_avoid(*parse_list(a))
     
-    # 1. Save locally and build RAG
-    p.save()
+    # 1. Save locally and build RAG (wait for embedding to complete)
+    p.save(wait_for_rag=True)
     
-    # 2. Single Supabase upsert with both profile data AND RAG data (faster - one DB call)
+    # 2. Single Supabase upsert with both profile data AND RAG data (one DB call)
     try:
         rag = RAGStorage(p.name)
         sql_data = {

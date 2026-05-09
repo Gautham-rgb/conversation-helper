@@ -1,5 +1,12 @@
 import os
+from pathlib import Path
+from dotenv import load_dotenv
 from supabase import create_client, Client
+
+# Load environment variables from root .env
+root_env = Path(__file__).resolve().parent.parent / ".env"
+if root_env.exists():
+    load_dotenv(root_env)
 
 url: str = os.environ.get("SUPABASE_URL", "")
 key: str = os.environ.get("SUPABASE_KEY", "")

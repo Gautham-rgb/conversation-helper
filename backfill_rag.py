@@ -12,6 +12,8 @@ def backfill_rag_from_cloud():
         # Single batch fetch - fastest method
         result = supabase.table("profiles").select("name, rag").execute()
         profiles_data = result.data
+
+
     except Exception as e:
         print(f"Failed to fetch from Supabase: {e}")
         return

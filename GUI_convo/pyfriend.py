@@ -8,6 +8,7 @@ import soundfile as sf
 import numpy as np
 import tempfile
 from CLI_convo.profile_storage import Profile
+from CLI_convo.rag_storage import RAGStorage # Import updated RAGStorage
 from ttkbootstrap.widgets.scrolled import ScrolledText
 import tkinter as tk, ttkbootstrap as ttk
 from app import show, root
@@ -18,34 +19,6 @@ import asyncio
 import threading
 import pyttsx3
 from typing import Optional
-
-# RAG search function
-def _rag_search(rag_data: list[dict], query: str, top_k: int = 5) -> list[str]:
-    """Simple text-based search through RAG data from Supabase."""
-    if not rag_data:
-        return []
-    
-    query_lower = query.lower()
-    scored_results = []
-    
-    for entry in rag_data:
-        text = entry.get("text", "")
-        text_lower = text.lower()
-        
-        # Simple scoring: count keyword matches
-        score = 0
-        query_words = query_lower.split()
-        for word in query_words:
-            if word in text_lower:
-                score += 1
-        
-        if score > 0:
-            scored_results.append((score, text))
-    
-    # Sort by score descending and return top_k texts
-    scored_results.sort(key=lambda x: x[0], reverse=True)
-    return [text for _, text in scored_results[:top_k]]
-
 
 def pyfriend_page(name=""):
     try:
@@ -131,27 +104,20 @@ def pyfriend_page(name=""):
                         rec_status.set("⚠️ Transcription failed. Speak clearly and try again.")
                         return
 
-                # Try to get RAG data from Supabase first
-                rag_data = None
-                try:
-                    from sql_sync import get_rag_data_from_sql
-                    rag_data = get_rag_data_from_sql(p.name)
-                except Exception as e:
-                    print(f"RAG fetch failed: {e}")
+                # Initialize RAGStorage and perform search
+                rag_storage = RAGStorage(p.name)
+                rag_results = rag_storage.search(user_text, top_k=5)
 
-                # Build context with RAG if available, otherwise use local
                 lines = [f"Name: {p.name}"]
                 for k, v in [("Traits", p.traits), ("Interests", p.interests), ("Notes", p.notes), ("Avoid", p.avoids)]:
                     if v: lines.append(f"{k}: {', '.join(v)}")
                 
-                if rag_data:
-                    rag_results = _rag_search(rag_data, user_text, top_k=5)
-                    if rag_results:
-                        lines.append("\nRelevant Context from Cloud History/Notes:")
-                        for res in rag_results:
-                            lines.append(f" - {res}")
+                if rag_results:
+                    lines.append("\nRelevant Context from Cloud History/Notes:")
+                    for res in rag_results:
+                        lines.append(f" - {res}")
                 else:
-                    # Fallback to local profile context
+                    # Fallback to local profile context if no RAG results
                     context = p.to_prompt(query=user_text)
                     system_msg = (
                         f"You are a concise social intelligence helper. Focus on the provided profile:\n{context}\n"

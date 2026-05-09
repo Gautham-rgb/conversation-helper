@@ -19,6 +19,7 @@ openai-whisper           # Local audio transcription (CLI_convo)
 # --- RAG (Retrieval-Augmented Generation) ---
 sentence-transformers    # Embedding models for RAG
 faiss-cpu                # Vector search for RAG
+google-generativeai      # Gemini embeddings for RAG
 
 # --- Audio Processing ---
 sounddevice>=0.4.6       # Microphone recording (CLI_convo, GUI_convo)
