@@ -110,10 +110,10 @@ def pyfriend_page(name: str) -> None:
 
 async def _answer_personalized(profile: Profile, user_text: str) -> str:
     # This function is tailored to use a single profile's context
-    context = profile.to_prompt()
+    context = profile.to_prompt(query=user_text)
 
     system = (
-        f"Be a concise social intelligence helper. Focus on the provided profile:{context}"
+        f"Be a concise social intelligence helper. Focus on the provided profile:\n{context}\n"
         "Give practical wording. No markdown."
     )
     return await complete(system, user_text)

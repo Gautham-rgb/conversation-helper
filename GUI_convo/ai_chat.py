@@ -54,7 +54,7 @@ def _send(profile, msg_entry, chat_box, history):
     msg_entry.config(state="disabled")
 
     def task():
-        system = f"You are a social intelligence assistant.\n{profile.to_prompt() if profile else 'No profile loaded.'}"
+        system = f"You are a social intelligence assistant.\n{profile.to_prompt(query=msg) if profile else 'No profile loaded.'}"
         try:
             if ONLINE and groq_client:
                 response = groq_client.chat.completions.create(

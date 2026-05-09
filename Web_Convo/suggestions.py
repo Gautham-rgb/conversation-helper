@@ -6,7 +6,7 @@ from web_ai import complete
 
 async def suggest(profile: Profile, situation: str) -> str:
     user_content = (
-        f"{profile.to_prompt()}\n\n"
+        f"{profile.to_prompt(query=situation)}\n\n"
         f"Situation: {situation}\n\n"
         "Give 3 things to say, 1 thing to avoid, and 1 wildcard move. "
         "Be concise. No markdown bold."
