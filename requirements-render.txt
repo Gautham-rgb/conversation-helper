@@ -17,7 +17,8 @@ groq==1.2.0              # Groq API client for cloud AI
 python-dotenv==1.2.2     # Environment variable management
 
 # --- RAG (Retrieval-Augmented Generation) ---
-google-generativeai   # Embedding models for RAG
+google-generativeai
+faiss-cpu   # Embedding models for RAG
 numpy>=1.26.0            # Required for RAG operations
 
 # --- Web Server ---
