@@ -53,6 +53,7 @@ def _get_executor():
 class RAGStorage:
     def __init__(self, profile_name: str):
         self.profile_name = profile_name.lower()
+        self.lock = threading.Lock()
         
         # 1. Safe pathing for both Scripts and Jupyter Notebooks
         try:
@@ -71,31 +72,36 @@ class RAGStorage:
 
     def _load(self):
         import faiss
-        if self.index_path.exists():
-            try:
-                self.index = faiss.read_index(str(self.index_path))
-                # Verify dimension
-                if self.index.d != EMBEDDING_DIM:
-                    print(f"Index dimension mismatch ({self.index.d} != {EMBEDDING_DIM}). Clearing index for {self.profile_name}.")
-                    self.index = None
-                    # Clean up the mismatched index file
-                    if self.index_path.exists():
-                        try:
-                            os.remove(self.index_path)
-                        except OSError as e:
-                            print(f"Error removing mismatched index file {self.index_path}: {e}")
-            except Exception as e:
-                print(f"Warning: Could not load FAISS index for {self.profile_name}: {e}")
-        
-        if self.metadata_path.exists():
-            try:
-                with open(self.metadata_path, "r", encoding='utf-8') as f:
-                    self.metadata = json.load(f)
-            except Exception as e:
-                print(f"Warning: Metadata for {self.profile_name} is corrupted: {e}")
-                self.metadata = []
+        with self.lock:
+            if self.index_path.exists():
+                try:
+                    self.index = faiss.read_index(str(self.index_path))
+                    # Verify dimension
+                    if self.index.d != EMBEDDING_DIM:
+                        print(f"Index dimension mismatch ({self.index.d} != {EMBEDDING_DIM}). Clearing index for {self.profile_name}.")
+                        self.index = None
+                        # Clean up the mismatched index file
+                        if self.index_path.exists():
+                            try:
+                                os.remove(self.index_path)
+                            except OSError as e:
+                                print(f"Error removing mismatched index file {self.index_path}: {e}")
+                except Exception as e:
+                    print(f"Warning: Could not load FAISS index for {self.profile_name}: {e}")
+            
+            if self.metadata_path.exists():
+                try:
+                    with open(self.metadata_path, "r", encoding='utf-8') as f:
+                        self.metadata = json.load(f)
+                except Exception as e:
+                    print(f"Warning: Metadata for {self.profile_name} is corrupted: {e}")
+                    self.metadata = []
 
     def _save(self):
+        with self.lock:
+            self._save_internal()
+
+    def _save_internal(self):
         import faiss
         try:
             # Save metadata first (smaller, less likely to fail)
@@ -136,24 +142,25 @@ class RAGStorage:
         try:
             embeddings = get_embeddings(texts, task_type="retrieval_document")
             
-            # Check embedding dimension consistency before adding to index
-            if embeddings.shape[1] != EMBEDDING_DIM:
-                print(f"Error: Embedding dimension mismatch ({embeddings.shape[1]} != {EMBEDDING_DIM}). Clearing index and metadata for {self.profile_name}.")
-                self.clear() # Use clear to reset everything
-                return # Stop processing if dimensions don't match
+            with self.lock:
+                # Check embedding dimension consistency before adding to index
+                if embeddings.shape[1] != EMBEDDING_DIM:
+                    print(f"Error: Embedding dimension mismatch ({embeddings.shape[1]} != {EMBEDDING_DIM}). Clearing index and metadata for {self.profile_name}.")
+                    self._clear_internal() # Use clear to reset everything
+                    return # Stop processing if dimensions don't match
 
-            if self.index is None:
-                d = embeddings.shape[1]
-                self.index = faiss.IndexFlatL2(d)
-            
-            self.index.add(np.array(embeddings).astype('float32'))  # type: ignore
-            
-            for text in texts:
-                self.metadata.append({
-                    "text": text,
-                    "source": source_type
-                })
-            self._save()
+                if self.index is None:
+                    d = embeddings.shape[1]
+                    self.index = faiss.IndexFlatL2(d)
+                
+                self.index.add(np.array(embeddings).astype('float32'))  # type: ignore
+                
+                for text in texts:
+                    self.metadata.append({
+                        "text": text,
+                        "source": source_type
+                    })
+                self._save_internal()
         except Exception as e:
             print(f"Error in background RAG processing: {e}")
 
@@ -229,7 +236,7 @@ class RAGStorage:
         if texts:
             self.add_texts(texts, "profile_rebuild", background=background)
 
-    def clear(self):
+    def _clear_internal(self):
         """Uses shutil.rmtree for a more robust directory deletion."""
         if self.base_dir.exists():
             try:
@@ -238,4 +245,7 @@ class RAGStorage:
                 print(f"Error while clearing RAG data: {e}")
         self.index = None
         self.metadata = []
-        self.metadata = []
+
+    def clear(self):
+        with self.lock:
+            self._clear_internal()

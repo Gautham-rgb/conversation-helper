@@ -20,31 +20,29 @@ def backfill_rag_from_cloud():
     
     count = 0
     for profile in profiles_data:
-        name = profile.get("name", "") #type: ignore
-        rag_data = profile.get("rag", []) #type: ignore
+        name = profile.get("name") #type: ignore
+        rag_data = profile.get("rag") #type: ignore
         
         if not name or not rag_data:
             continue
         
         try:
             local_rag = RAGStorage(name) #type: ignore
-            local_rag.index = None
-            local_rag.metadata = []
-            local_rag.metadata = rag_data
+            # Fetch existing or start empty
+            unique_texts = []
+            seen = set()
             
-            # Rebuild FAISS index from cloud data
-            texts = [entry.get("text", "") for entry in rag_data if entry.get("text")] #type: ignore
-            if texts:
-                local_rag.add_texts(texts, source_type="cloud_backfill")
-                # Deduplicate
-                seen = set()
-                unique = []
-                for entry in local_rag.metadata: #type: ignore
-                    if entry["text"] not in seen:
-                        seen.add(entry["text"])
-                        unique.append(entry)
-                local_rag.metadata = unique
-                local_rag._save()
+            # Filter and deduplicate incoming data
+            for entry in rag_data: #type: ignore
+                text = entry.get("text")
+                if text and text not in seen:
+                    seen.add(text)
+                    unique_texts.append(text)
+            
+            # Rebuild index in one atomic add_texts call if possible
+            if unique_texts:
+                # Add texts will trigger internal lock and storage
+                local_rag.add_texts(unique_texts, source_type="cloud_backfill", background=False)
             
             count += 1
         except Exception as e:
