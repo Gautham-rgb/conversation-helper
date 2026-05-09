@@ -16,23 +16,24 @@ def admin_dev_page() -> None:
 
         async def run_seed():
             test_profiles = [
-  {
-    "name": "elon musk",
-    "display_name": "Elon Musk",
-    "traits": ["Impulsive", "Risk-Tolerant", "Polarizing"],
-    "interests": ["Multi-Planetary Life", "AI Development", "Infrastructure"],
-    "avoids": ["Traditional Advertising", "Bureaucracy", "Work-Life Balance"],
-    "notes": "Operates as a tactical expansionist, prioritizing engineering and speed over public approval."
-  },
-  {
-    "name": "taylor swift",
-    "display_name": "Taylor Swift",
-    "traits": ["Precise", "Relatable", "Protective"],
-    "interests": ["Lyrical Narrative", "Brand Ecosystems", "Political Advocacy"],
-    "avoids": ["Uncontrolled Narratives", "Systemic Exploitation", "Predictability"],
-    "notes": "An empathetic architect of culture who masters long-term planning and emotional resonance."
-  }
-]
+                {
+                    "name": "elon musk",
+                    "display_name": "Elon Musk",
+                    "traits": ["Impulsive", "Risk-Tolerant", "Polarizing"],
+                    "interests": ["Multi-Planetary Life", "AI Development", "Infrastructure"],
+                    "avoids": ["Traditional Advertising", "Bureaucracy", "Work-Life Balance"],
+                    "notes": "Operates as a tactical expansionist...",
+                    "rag": [
+                        {"text": "Trait: Impulsive", "source": "seed"},
+                        {"text": "Trait: Risk-Tolerant", "source": "seed"},
+                        {"text": "Interest: Multi-Planetary Life", "source": "seed"},
+                        {"text": "Note: Prioritizes engineering and speed", "source": "seed"},
+                        {"text": "Avoids: Traditional Advertising, Bureaucracy, Work-Life Balance"}
+                    ]
+                },
+
+            ]
+
             try:
 
                 admin_supabase.table("profiles").upsert(test_profiles).execute()

@@ -78,20 +78,25 @@ def _save_manual(old: str|None, new: str|None, t: str, i: str, n: str, a: str) -
     p.add_note(*parse_list(n))
     p.add_avoid(*parse_list(a))
     
-    # 1. Save locally and build RAG (profile_storage.py handles RAG sync)
+    # 1. Save locally and build RAG
     p.save()
     
-    # 2. Create/update profile in Supabase (without rag column to avoid overwriting)
-    sync_new_profile(p)
-    
-    # 3. Sync RAG data to Supabase (row exists now)
+    # 2. Single Supabase upsert with both profile data AND RAG data (faster - one DB call)
     try:
         rag = RAGStorage(p.name)
-        if rag.metadata:
-            sync_rag_data_to_sql(p.name, rag.metadata)
-            print(f"Synced RAG to cloud for '{p.name}': {len(rag.metadata)} entries")
+        sql_data = {
+            "name": p.name.lower(),
+            "display_name": p.name,
+            "traits": p.traits,
+            "notes": p.notes,
+            "interests": p.interests,
+            "avoids": p.avoids,
+            "history": [c.to_dict() for c in p.prev_conver],
+            "rag": rag.metadata if rag.metadata else []
+        }
+        supabase.table("profiles").upsert(sql_data, on_conflict="name").execute()
     except Exception as e:
-        print(f"Failed to sync RAG to cloud: {e}")
+        print(f"Fast sync failed: {e}")
     
     ui.notify(f'Saved "{clean}".', type="positive")
     ui.navigate.to(f"/profile/{clean}")
