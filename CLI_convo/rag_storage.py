@@ -6,7 +6,8 @@ import shutil
 import threading
 from concurrent.futures import ThreadPoolExecutor, Future
 from typing import Optional, Callable
-import google.generativeai as genai
+import google.genai as genai
+from google.genai import types
 from dotenv import load_dotenv
 
 # Load environment variables (try root .env first)
@@ -23,21 +24,23 @@ EMBEDDING_DIM = 768
 
 # The google-generativeai library automatically picks up GOOGLE_API_KEY from environment variables
 # No explicit genai.configure() call is needed if the environment variable is set.
-
+client = genai.Client(api_key = GOOGLE_API_KEY)
 _executor: Optional[ThreadPoolExecutor] = None
 
-def get_embeddings(texts: list[str], task_type: str = "retrieval_document") -> np.ndarray:
+def get_embeddings(texts: list[str], task_type: str = "retrieval_query") -> np.ndarray:
     """Generate embeddings using Gemini API."""
     if not GOOGLE_API_KEY:
         raise ValueError("GOOGLE_API_KEY not found in environment variables.")
     
     try:
-        result = genai.embed_content( #type: ignore
+        result = client.models.embed_content(
             model=EMBEDDING_MODEL,
-            content=texts,
-            task_type=task_type
+            contents=types.Content(
+                parts=[types.Part.from_text(text=t) for t in texts]
+            ),
+            config=types.EmbedContentConfig(task_type=task_type)
         )
-        return np.array(result['embedding'])
+        return np.array([e.values for e in result.embeddings], dtype='float32') #type: ignore
     except Exception as e:
         # Catch potential API errors (e.g., invalid key, network issues, quota errors)
         print(f"Error generating embeddings with Gemini API: {e}")

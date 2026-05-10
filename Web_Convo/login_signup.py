@@ -1,6 +1,6 @@
 from __future__ import annotations
 from nicegui import ui, app
-from database_schema import create_user, check_login
+from database import supabase
 import os
 
 def login_page() -> None:
@@ -15,15 +15,16 @@ def login_page() -> None:
         password = ui.input('Password', password=True).classes('w-full')
         
         async def do_login():
-            user_id = check_login(email.value, password.value) #type: ignore
-            if user_id:
-                app.storage.user['authenticated'] = True
-                app.storage.user['user_id'] = user_id
-                app.storage.user['email'] = email.value
-                ui.notify('Logged in successfully!', type='positive')
-                ui.navigate.to('/')
-            else:
-                ui.notify('Invalid credentials', type='negative')
+            try:
+                res = supabase.auth.sign_in_with_password({"email": email.value, "password": password.value}) #type: ignore
+                if res.user:
+                    app.storage.user['authenticated'] = True
+                    app.storage.user['user_id'] = res.user.id
+                    app.storage.user['email'] = res.user.email
+                    ui.notify('Logged in successfully!', type='positive')
+                    ui.navigate.to('/')
+            except Exception as e:
+                ui.notify(f'Invalid credentials: {str(e)}', type='negative')
 
         ui.button('Login', on_click=do_login).classes('w-full')
         ui.link('Don\'t have an account? Sign up', '/signup').classes('text-sm text-center w-full')
@@ -41,9 +42,10 @@ def signup_page() -> None:
         
         async def do_signup():
             try:
-                create_user(email.value, password.value) #type: ignore
-                ui.notify('Signup successful! Please login.', type='positive')
-                ui.navigate.to('/login')
+                res = supabase.auth.sign_up({"email": email.value, "password": password.value}) #type: ignore
+                if res.user:
+                    ui.notify('Signup successful! Please confirm your email.', type='positive')
+                    ui.navigate.to('/login')
             except Exception as e:
                 ui.notify(f'Signup failed: {str(e)}', type='negative')
 

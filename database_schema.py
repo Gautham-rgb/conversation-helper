@@ -1,21 +1,4 @@
-import bcrypt
-from database import supabase
-
-def create_user(email: str, password: str):
-    salt = bcrypt.gensalt()
-    hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
-    
-    return supabase.table("users").insert({
-        "email": email,
-        "password_hash": hashed.decode('utf-8')
-    }).execute()
-
-def check_login(email: str, password: str):
-    user = supabase.table("users").select("*").eq("email", email).single().execute()
-    if user.data:
-        if bcrypt.checkpw(password.encode('utf-8'), user.data["password_hash"].encode('utf-8')):
-            return user.data["id"]
-    return None
+from Web_Convo.database import supabase
 
 def get_accessible_profiles(user_id: str):
     """Fetch profiles that a user is allowed to see via profile_access."""
