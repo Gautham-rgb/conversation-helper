@@ -22,6 +22,7 @@ def all_pyfriend_page() -> None:
             with ui.row().classes("gap-2 items-center"):
                 ask_button = ui.button("Ask", icon="send").props("color=primary")
                 rec_button = ui.button("Hold to Speak", icon="mic").props("color=negative")
+                speech_switch = ui.switch("Speak out the answer", value = True)
                 status = ui.label("Ready").classes("text-slate-400")
 
         async def ask_typed() -> None:
@@ -65,7 +66,8 @@ def all_pyfriend_page() -> None:
                 response = await _answer(text)
                 output.push(f"You: {text}")
                 output.push(f"AI: {response}")
-                _speak(response)
+                if speech_switch.value:
+                    _speak(response)
             except Exception as exc:
                 ui.notify(f"Voice request failed: {exc}", type="negative")
             finally:

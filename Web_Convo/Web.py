@@ -18,7 +18,17 @@ import admin_feedback_recieve
 import tutorial
 import admin_dev
 
+import login_signup
+
 GOOGLE_VERIFY_FILE = 'google7f2ee60747d0ac11.html' 
+
+@ui.page("/login")
+def login():
+    login_signup.login_page()
+
+@ui.page("/signup")
+def signup():
+    login_signup.signup_page()
 
 @app.get(f'/{GOOGLE_VERIFY_FILE}')
 async def verify_google():
@@ -48,6 +58,9 @@ ui.add_head_html('''
 
 @ui.page("/")
 def index() -> None:
+    if not app.storage.user.get('authenticated'):
+        ui.navigate.to('/login')
+        return
     home.home()
 
 if __name__ in {"__main__", "__mp_main__"}:

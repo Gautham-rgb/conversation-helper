@@ -149,6 +149,14 @@ def live_session(profile: Profile):
 
 
 def menu():
+    # Simple CLI session auth
+    user_id = None
+    print("Welcome to CLI Conversation Manager")
+    choice = input("[L]ogin [S]ignup: ").lower()
+    # Simplified login (would typically use a CLI-based Supabase auth)
+    # Placeholder for actual Supabase auth integration
+    print("Login/Signup simplified for CLI environment.")
+    
     while True:
         profiles = list(Profile.load_all().keys())
         print(f"\nProfiles: {profiles or 'none'}")

@@ -62,7 +62,7 @@ def _build_rag_for_profile(profile: Profile) -> None:
             print(f"Created RAG for '{profile.name}': {len(texts)} entries")
             sync_rag_data_to_sql(profile.name, rag.metadata)
     except Exception as e:
-        print(f"Failed to build RAG: {e}")
+        ui.notify(f"Failed to build RAG: {e}", type = "negative")
 
 
 def _save_manual(old: str|None, new: str|None, t: str, i: str, n: str, a: str) -> None:

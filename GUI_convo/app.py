@@ -14,6 +14,11 @@ root = ttk.Window(themename="darkly")
 root.geometry("900x650")
 root.title("Conversation Manager")
 
+# Start with auth
+from auth import login_signup_gui
+login_signup_gui()
+root.mainloop()
+
 
 def _text_widget(widget):
     """Return the underlying tk.Text from either a ScrolledText or plain tk.Text."""

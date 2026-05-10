@@ -36,6 +36,8 @@ def shell(title: str, on_tutorial: Optional[Callable] = None):
             with ui.row().classes("items-center gap-3"):
                 ui.icon("forum").classes("text-blue-400 text-2xl")
                 ui.label("Echo - Clear").classes("text-lg font-semibold")
+                dark = ui.dark_mode()
+                ui.switch("Dark Mode").bind_value(dark)
 
             with ui.row().classes("items-center gap-4"):
                 # Only render the button if a valid callable is passed
@@ -44,6 +46,15 @@ def shell(title: str, on_tutorial: Optional[Callable] = None):
                         .props('flat color=white icon=help_outline') \
                         .classes('text-sm') 
                 
+                if app.storage.user.get('authenticated'):
+                    async def logout():
+                        from database import supabase
+                        await supabase.auth.sign_out() #type: ignore
+                        app.storage.user.clear()
+                        ui.notify("Logged out")
+                        ui.navigate.to("/login")
+                    ui.button(icon="logout", on_click=logout).props("flat color=white").classes("text-sm")
+
                 ui.label(title).classes("text-sm text-slate-400")
                 
     with ui.column().classes("w-full max-w-6xl mx-auto px-5 py-6 gap-5") as content:

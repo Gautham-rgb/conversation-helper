@@ -5,6 +5,7 @@ from CLI_convo.profile_storage import Profile, storage_path
 def sync_new_profile(profile_obj: Profile):
     """Saves a profile to Supabase SQL simultaneously.
     Does NOT overwrite the rag column - that's handled by sync_rag_data_to_sql."""
+    from nicegui import app
     sql_data = {
         "name": profile_obj.name.lower(),
         "display_name": profile_obj.name,
@@ -14,6 +15,12 @@ def sync_new_profile(profile_obj: Profile):
         "avoids": profile_obj.avoids,
         "history": [c.to_dict() for c in profile_obj.prev_conver]
     }
+    
+    # Add user_id if authenticated
+    user_id = app.storage.user.get("user_id")
+    if user_id:
+        sql_data["user_id"] = user_id
+
     try:
         supabase.table("profiles").upsert(sql_data, on_conflict="name").execute()
     except Exception as e:

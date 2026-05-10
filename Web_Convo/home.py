@@ -5,18 +5,29 @@ from ui_parts import shell, debug_overlay
 from CLI_convo.offline import ONLINE
 from CLI_convo.profile_storage import Profile
 from tutorial import start_tutorial
+from database_schema import get_accessible_profiles
 from database import supabase
 
 def home() -> None:
     with shell("Dashboard", start_tutorial):
         supabase_profs: dict[str, Profile] = {}
         raw_profs = []
-        try:
-            res = supabase.table("profiles").select("*").execute()
-            raw_profs = res.data or []
-
-            for rp in raw_profs:
-                p = Profile(rp.get("display_name") or rp.get("name", "Unknown")) #type: ignore
+        user_id = app.storage.user.get('user_id')
+        user_email = app.storage.user.get('email')
+        admin_emails = [e.strip() for e in os.environ.get("ADMIN_EMAILS", "").split(",")]
+        is_admin = user_email in admin_emails
+        
+        if user_id:
+            try:
+                # If admin, fetch everything. Otherwise, fetch restricted list.
+                if is_admin:
+                    raw_profs = supabase.table("profiles").select("*").execute().data or []
+                else:
+                    raw_profs = get_accessible_profiles(user_id) or []
+                
+                for rp in raw_profs:
+                    # ... (rest of profile conversion logic) ...
+                    p = Profile(rp.get("display_name") or rp.get("name", "Unknown")) #type: ignore
                 p.traits = rp.get("traits", []) #type: ignore
                 p.interests = rp.get("interests", []) #type: ignore
                 p.notes = rp.get("notes", []) #type: ignore
@@ -24,9 +35,9 @@ def home() -> None:
                 from CLI_convo.profile_storage import Conversation
                 p.prev_conver = [Conversation(c["summary"], c["outcome"], c.get("date")) for c in rp.get("history", [])] #type: ignore
                 supabase_profs[p.name.lower()] = p
-        except Exception as e:
-            print(f"Supabase fetch failed: {e}")
-            ui.notify("Could not fetch cloud profiles (using local fallback)", type="warning", close_button="OK", timeout=5000)
+            except Exception as e:
+                ui.notify("Could not fetch cloud profiles (using local fallback)", type="warning", close_button="OK", timeout=5000)
+                ui.notify("ec")
 
         local_profs = Profile.load_all()
 
@@ -59,7 +70,7 @@ def home() -> None:
                         with ui.row().classes("gap-2"):
                             ui.chip(f"{len(p.interests)} interests").props("outline color=blue")
                             ui.chip(f"{len(p.prev_conver)} logs").props("outline color=green")
-                            ui.button(f"Talk about {p.name}", on_click = lambda n=p.name: ui.navigate.to(f"/pyfriend/{n}"))
+                            ui.button(f"Talk about {p.name}", on_click = lambda n=p.name: ui.navigate.to(f"/pyfriend/{p.name}"))
                         if latest:
                             ui.separator().classes("bg-slate-700")
                             ui.label(latest.summary).classes("text-sm text-slate-400 line-clamp-2")
