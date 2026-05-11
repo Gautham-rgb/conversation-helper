@@ -1,7 +1,11 @@
 from __future__ import annotations
 import os
+import sys
 from nicegui import ui, app
 from fastapi.responses import FileResponse
+
+# Ensure root is in path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Lazy import helper to keep global namespace clean
 def _lazy_import(module_name: str):
