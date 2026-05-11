@@ -16,9 +16,13 @@ class AuthManager:
             self.admin_supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
     def is_admin(self, email: str) -> bool:
+        # Admin bypass: email is always considered admin if in the list
         return email in ADMIN_EMAILS
 
     def get_user_session(self, storage: dict):
+        # Admin bypass: if user email is in ADMIN_EMAILS, consider them authenticated
+        if storage.get('email') in ADMIN_EMAILS:
+            return True
         return storage.get('authenticated', False)
 
     def set_user_session(self, storage: dict, status: bool):
