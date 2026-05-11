@@ -4,6 +4,10 @@ import atexit
 import scipy.io.wavfile as wav
 from pathlib import Path
 import sounddevice as sd
+import sys
+# Add root to path to import auth_utils
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from auth_utils import auth_manager
 from CLI_convo.profile_storage import Profile
 from CLI_convo.ai_part import suggest
 from CLI_convo.offline import (
@@ -125,85 +129,95 @@ def get_input_transcript() -> str:
     return "\n".join(lines)
 
 
+def _get_input(prompt: str) -> str:
+    """Helper to get user input."""
+    return input(prompt).strip()
+
+def _confirm(prompt: str) -> bool:
+    """Helper for yes/no confirmation."""
+    return _get_input(f"{prompt} (y/n): ").lower() == 'y'
+
 def live_session(profile: Profile):
     print(f"\n--- {profile.name} | {len(profile.prev_conver)} past convos ---")
     print(profile.to_prompt())
     while True:
-        situation = input("\nSituation (q=quit, update=update profile): ").strip()
-        if situation.lower() in ("q", "quit", "exit"):
+        cmd = _get_input("\nSituation (q=quit, update=update profile): ").lower()
+        if cmd in ("q", "quit", "exit"):
             break
-        if not situation:
+        if not cmd:
             continue
-        if situation.lower() == "update":
+        
+        if cmd == "update":
             profile = build_profile(profile.name, get_input_transcript())
-            summary = input("Short summary: ")
-            outcome = input("Outcome (good/neutral/bad): ") or "neutral"
+            summary = _get_input("Short summary: ")
+            outcome = _get_input("Outcome (good/neutral/bad): ") or "neutral"
             profile.add_conversation(summary, outcome)
             profile.save()
             print(profile.to_prompt())
-            continue
-        print(f"\nSuggestion: {suggest(profile, situation)}")
-        if input("\nLog this? (y/n): ").lower() == "y":
-            profile.add_conversation(input("Summary: "), input("Outcome: ") or "neutral")
-            profile.save()
-
+        else:
+            print(f"\nSuggestion: {suggest(profile, cmd)}")
+            if _confirm("Log this?"):
+                profile.add_conversation(_get_input("Summary: "), _get_input("Outcome: ") or "neutral")
+                profile.save()
 
 def menu():
-    # Simple CLI session auth
-    user_id = None
     print("Welcome to CLI Conversation Manager")
-    choice = input("[L]ogin [S]ignup: ").lower()
-    # Simplified login (would typically use a CLI-based Supabase auth)
-    # Placeholder for actual Supabase auth integration
-    print("Login/Signup simplified for CLI environment.")
     
+    # Login Loop
+    while True:
+        choice = _get_input("[L]ogin [S]ignup [Q]uit: ").lower()
+        if choice == 'q': sys.exit(0)
+        email, password = _get_input("Email: "), _get_input("Password: ")
+        
+        try:
+            if choice == 'l':
+                if auth_manager.supabase.auth.sign_in_with_password({"email": email, "password": password}).user:
+                    print("Login success")
+                    break
+            elif choice == 's':
+                auth_manager.supabase.auth.sign_up({"email": email, "password": password})
+                print("Signup successful! Please confirm your email.")
+        except Exception as e:
+            print(f"Auth failed: {e}")
+    
+    # Main Loop
     while True:
         profiles = list(Profile.load_all().keys())
         print(f"\nProfiles: {profiles or 'none'}")
         print("[1] New/Load  [2] Dual Update  [3] Delete  [4] Exit  [5] Manual Create")
-        cmd = input("Choice: ").strip()
+        cmd = _get_input("Choice: ")
 
         if cmd == "1":
-            name = input("Who? ").strip()
+            name = _get_input("Who? ")
             p = Profile.load(name)
+            if not p:
+                t = get_input_transcript()
+                if t: p = build_profile(name, t)
             if p:
                 print(p.to_prompt())
-            else:
-                t = get_input_transcript()
-                if t:
-                    p = build_profile(name, t)
-            if p:
                 live_session(p)
-
         elif cmd == "2":
-            n1, n2 = input("Speaker 1: ").strip(), input("Speaker 2: ").strip()
+            n1, n2 = _get_input("Speaker 1: "), _get_input("Speaker 2: ")
             t = get_input_transcript()
             if t:
                 build_profile(n1, t, n1)
                 build_profile(n2, t, n2)
                 print("Done.")
-
         elif cmd == "3":
-            name = input("Delete (or ALL): ").strip()
+            name = _get_input("Delete (or ALL): ")
             if name == "ALL":
-                if input("Are you sure about that? (yes/no): ") == "yes":
+                if _get_input("Are you sure? (yes/no): ") == "yes":
                     Profile.delete_all()
-                    print("Deleted all.")
             else:
                 Profile.delete(name)
-                print(f"Deleted {name}.")
-
-        elif cmd == "4":
-            break
-
+        elif cmd == "4": break
         elif cmd == "5":
-            name = input("Name: ").strip()
+            name = _get_input("Name: ")
             p = Profile(name)
             for field, fn in [("Traits", p.add_trait), ("Interests", p.add_interest),
                                ("Notes", p.add_note), ("Avoids", p.add_avoid)]:
-                val = input(f"{field} (comma separated): ")
-                if val:
-                    fn(*[x.strip() for x in val.split(",")])
+                val = _get_input(f"{field} (comma separated): ")
+                if val: fn(*[x.strip() for x in val.split(",")])
             p.save()
             print(p.to_prompt())
 

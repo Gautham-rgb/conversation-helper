@@ -2,38 +2,31 @@ from __future__ import annotations
 from nicegui import app, ui
 from ui_parts import back_button, shell
 from typing import cast, Any
-# Initialize Supabase client
 import os
 from database import supabase
+from auth_utils import auth_manager
 from admin_dev import admin_dev_page
-
-ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "ipthisaddress") 
 
 def _load_feedback() -> list[dict[str, Any]]:
     try:
         response = supabase.table("feedback").select("*").order("created_at", desc=True).execute()
-        # Explicitly cast the Supabase JSON output to the expected list of dicts
         return cast(list[dict[str, Any]], response.data or [])
     except Exception as e:
         ui.notify(f"Error loading feedback: {e}", type="negative")
         return []
 
 def _delete_feedback(row: dict, table: ui.table) -> None:
-    """Removes a specific entry from Supabase and updates the UI."""
     try:
-        # Use the 'id' column provided by Supabase
         supabase.table("feedback").delete().eq("id", row.get("id")).execute()
-        
-        # Refresh the table rows locally
         table.rows = [r for r in table.rows if r.get('id') != row.get('id')]
         ui.notify("Feedback entry deleted from database.", type="info")
     except Exception as e:
         ui.notify(f"Delete failed: {e}", type="negative")
-
     
 @ui.page("/admin")
 def admin_page() -> None:
-    if not app.storage.user.get('authenticated', False):
+    email = app.storage.user.get('email', '')
+    if not auth_manager.get_user_session(app.storage.user) or not auth_manager.is_admin(email):
         _show_login_form()
         return
 
@@ -60,7 +53,7 @@ def admin_page() -> None:
         table = ui.table(
             columns=columns, 
             rows=_load_feedback(), 
-            row_key='id' # Supabase uses 'id' as primary key
+            row_key='id'
         ).classes("w-full bg-[#151b22] text-slate-200 border border-slate-800 rounded-lg")
 
         with table.add_slot('top-right'):
@@ -93,18 +86,11 @@ def _confirm_delete(row: dict, table: ui.table):
 def _show_login_form():
     with ui.column().classes('absolute-center items-center w-full'):
         with ui.card().classes('w-80 p-8 bg-[#151b22] border border-slate-800 shadow-2xl'):
-            ui.label('Admin Login').classes('text-2xl font-bold text-white mb-4 w-full text-center')
-            pwd_input = ui.input('Password', password=True).classes('w-full mb-4').props('dark outlined')
-            ui.button('Login', on_click=lambda: _handle_login(pwd_input.value or '')) \
-                .classes('w-full').props('color=primary')
-
-def _handle_login(password: str):
-    if password == ADMIN_PASSWORD:
-        app.storage.user['authenticated'] = True
-        ui.navigate.to('/admin')
-    else:
-        ui.notify('Invalid password', type='negative')
+            ui.label('Admin Login (Restricted)').classes('text-2xl font-bold text-white mb-4 w-full text-center')
+            ui.label('Only authorized accounts can access this area.').classes('text-sm text-slate-400 mb-4')
+            ui.navigate.to('/login')
 
 def _logout():
-    app.storage.user['authenticated'] = False
+    auth_manager.set_user_session(app.storage.user, False)
+    app.storage.user['email'] = None
     ui.navigate.to('/')

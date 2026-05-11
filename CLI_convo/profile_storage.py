@@ -41,15 +41,8 @@ class Profile:
         if summary.strip():
             self.prev_conver.append(Conversation(summary, outcome))
 
-    def save(self, wait_for_rag: bool = False):
-        """Save profile to local storage and rebuild RAG index.
-        
-        Args:
-            wait_for_rag: If True, wait for RAG embedding to complete (blocking).
-                         If False, RAG embedding happens in background (non-blocking).
-        """
-        data = self.load_all_raw()
-        data[self.name.lower()] = {
+    def to_dict(self):
+        return {
             "name": self.name,
             "traits": self.traits,
             "notes": self.notes,
@@ -57,15 +50,17 @@ class Profile:
             "avoids": self.avoids,
             "history": [c.to_dict() for c in self.prev_conver]
         }
+
+    def save(self, wait_for_rag: bool = False):
+        """Save profile to local storage and rebuild RAG index."""
+        data = self.load_all_raw()
+        data[self.name.lower()] = self.to_dict()
         with open(storage_path, "w") as f:
             json.dump(data, f, indent=4)
         
-        # Trigger RAG rebuild in background (non-blocking by default)
         future = self.rag.rebuild_from_profile(self, background=not wait_for_rag)
-        
-        # If caller wants to wait, block until embedding is done
         if wait_for_rag and future:
-            future.result()  # Wait for background thread to complete
+            future.result()
 
     @staticmethod
     def load_all_raw():

@@ -1,6 +1,6 @@
 import ttkbootstrap as ttk
 from app import root
-from database import supabase
+from auth_utils import auth_manager
 
 def login_signup_gui():
     for w in root.winfo_children():
@@ -21,9 +21,8 @@ def login_signup_gui():
     
     def do_login():
         try:
-            res = supabase.auth.sign_in_with_password({"email": email.get(), "password": password.get()})
+            res = auth_manager.supabase.auth.sign_in_with_password({"email": email.get(), "password": password.get()})
             if res.user:
-                # Save session status to a local file or temporary storage
                 print("Login success")
                 # Navigate to home
                 from home import home
@@ -33,7 +32,7 @@ def login_signup_gui():
 
     def do_signup():
         try:
-            supabase.auth.sign_up({"email": email.get(), "password": password.get()})
+            auth_manager.supabase.auth.sign_up({"email": email.get(), "password": password.get()})
             ttk.Label(frame, text="Check email to confirm!", bootstyle="success").pack()
         except Exception as e:
             ttk.Label(frame, text=str(e), bootstyle="danger").pack()

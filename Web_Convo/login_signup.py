@@ -1,10 +1,11 @@
 from __future__ import annotations
 from nicegui import ui, app
 from database import supabase
+from auth_utils import auth_manager
 import os
 
 def login_page() -> None:
-    if app.storage.user.get('authenticated'):
+    if auth_manager.get_user_session(app.storage.user):
         ui.navigate.to('/')
         return
 
@@ -18,7 +19,7 @@ def login_page() -> None:
             try:
                 res = supabase.auth.sign_in_with_password({"email": email.value, "password": password.value}) #type: ignore
                 if res.user:
-                    app.storage.user['authenticated'] = True
+                    auth_manager.set_user_session(app.storage.user, True)
                     app.storage.user['user_id'] = res.user.id
                     app.storage.user['email'] = res.user.email
                     ui.notify('Logged in successfully!', type='positive')
@@ -30,7 +31,7 @@ def login_page() -> None:
         ui.link('Don\'t have an account? Sign up', '/signup').classes('text-sm text-center w-full')
 
 def signup_page() -> None:
-    if app.storage.user.get('authenticated'):
+    if auth_manager.get_user_session(app.storage.user):
         ui.navigate.to('/')
         return
 

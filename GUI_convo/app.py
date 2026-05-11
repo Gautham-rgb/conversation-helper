@@ -1,6 +1,9 @@
 import ttkbootstrap as ttk
+from typing import Callable, Any, Union
 import sys
 import os
+
+# Add root to path for imports
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 
 # ── Pickle compatibility shim ─────────────────────────────────────────────────
@@ -14,42 +17,43 @@ root = ttk.Window(themename="darkly")
 root.geometry("900x650")
 root.title("Conversation Manager")
 
-# Start with auth
-from auth import login_signup_gui
-login_signup_gui()
-root.mainloop()
-
-
-def _text_widget(widget):
-    """Return the underlying tk.Text from either a ScrolledText or plain tk.Text."""
+def _get_tk_widget(widget: Any) -> Any:
+    """Extract underlying tkinter widget if wrapped."""
     return widget.text if hasattr(widget, "text") else widget
 
+def get_text(widget: Any) -> str:
+    """Retrieve text from a widget."""
+    return _get_tk_widget(widget).get("1.0", "end").strip()
 
-def get_scrolled_text(widget) -> str:
-    """Get text from a ScrolledText or plain tk.Text."""
-    return _text_widget(widget).get("1.0", "end").strip()
-
-
-def set_scrolled_text(widget, text: str):
-    """Replace all text in a ScrolledText or plain tk.Text."""
-    w = _text_widget(widget)
+def set_text(widget: Any, text: str):
+    """Replace all text in a widget safely."""
+    w = _get_tk_widget(widget)
+    state = w.cget("state")
     w.config(state="normal")
     w.delete("1.0", "end")
     w.insert("end", text)
-    w.config(state="disabled")
-    w.see("end")
+    w.config(state=state)
 
-
-def append_scrolled_text(widget, text: str):
-    """Append text without clearing — use this for chat/logs."""
-    w = _text_widget(widget)
+def append_text(widget: Any, text: str):
+    """Append text to a widget safely."""
+    w = _get_tk_widget(widget)
+    state = w.cget("state")
     w.config(state="normal")
     w.insert("end", text)
-    w.config(state="disabled")
+    w.config(state=state)
     w.see("end")
 
-
-def show(page_func, **kwargs):
+def show(page_func: Callable, **kwargs):
+    """Clear root and load a new page."""
     for w in root.winfo_children():
         w.destroy()
-    page_func(**kwargs)
+    try:
+        page_func(**kwargs)
+    except Exception as e:
+        print(f"Error loading page: {e}")
+        # Optionally show an error page here if implemented
+
+# Start Auth process
+from auth import login_signup_gui
+login_signup_gui()
+root.mainloop()
