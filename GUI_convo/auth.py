@@ -23,6 +23,11 @@ def login_signup_gui():
         try:
             res = auth_manager.supabase.auth.sign_in_with_password({"email": email.get(), "password": password.get()})
             if res.user:
+                # Update the database client with the session
+                from database import supabase
+                if supabase:
+                    supabase.auth.set_session(res.session.access_token, res.session.refresh_token)
+                
                 print("Login success")
                 # Navigate to home
                 from home import home
