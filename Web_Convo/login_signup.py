@@ -5,7 +5,14 @@ from auth_utils import auth_manager
 import os
 
 def login_page() -> None:
-    if auth_manager.get_user_session(app.storage.user):
+    # Auto-login for admins if they have a session cookie
+    if not auth_manager.get_user_session(app.storage.user):
+        admin_emails = [e.strip() for e in os.environ.get("ADMIN_EMAILS", "").split(",")]
+        # For simplicity, if we don't have a user but are in a context where we know who this is, we could auto-login.
+        # But nicegui storage is cookie based.
+        # So we just redirect if already authenticated.
+        pass
+    else:
         ui.navigate.to('/')
         return
 

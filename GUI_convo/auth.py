@@ -30,10 +30,20 @@ def login_signup_gui():
         except Exception as e:
             ttk.Label(frame, text=str(e), bootstyle="danger").pack()
 
+    def show_email_verification_screen(email_address):
+        for w in root.winfo_children():
+            w.destroy()
+        frame = ttk.Frame(root, padding=20)
+        frame.pack(expand=True)
+        ttk.Label(frame, text="Verify Your Email", font=("Segoe UI", 16, "bold")).pack(pady=10)
+        ttk.Label(frame, text=f"A confirmation link has been sent to {email_address}.\nPlease check your inbox and click the link to verify your account.", wraplength=300, justify="center").pack(pady=10)
+        ttk.Button(frame, text="Back to Login", command=login_signup_gui).pack(pady=10)
+
     def do_signup():
         try:
-            auth_manager.supabase.auth.sign_up({"email": email.get(), "password": password.get()})
-            ttk.Label(frame, text="Check email to confirm!", bootstyle="success").pack()
+            email_val = email.get()
+            auth_manager.supabase.auth.sign_up({"email": email_val, "password": password.get()})
+            show_email_verification_screen(email_val)
         except Exception as e:
             ttk.Label(frame, text=str(e), bootstyle="danger").pack()
 
