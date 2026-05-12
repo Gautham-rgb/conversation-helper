@@ -26,7 +26,7 @@ def login_signup_gui():
                 # Update the database client with the session
                 from database import supabase
                 if supabase:
-                    supabase.auth.set_session(res.session.access_token, res.session.refresh_token)
+                    supabase.auth.set_session(res.session.access_token, res.session.refresh_token) #type: ignore
                 
                 print("Login success")
                 # Navigate to home

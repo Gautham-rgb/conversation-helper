@@ -92,7 +92,9 @@ def fetch_all_profiles_from_sql() -> dict[str, Profile]:
             p.prev_conver = [Conversation(c["summary"], c["outcome"], c.get("date")) for c in rp.get("history", [])]  # type: ignore
             supabase_profs[p.name.lower()] = p
     except Exception as e:
-        print(f"Supabase fetch failed: {e}")
+        print(f"DEBUG: Supabase fetch failed with error: {e}")
+        # Re-raise or log more detail if necessary
+        raise e
     
     return supabase_profs
 

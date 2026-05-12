@@ -1,7 +1,7 @@
 import tkinter as tk
 import ttkbootstrap as ttk
 from tkinter import messagebox
-from app import root, show, get_scrolled_text, set_scrolled_text
+from app import root, show, get_text, set_text
 from CLI_convo.profile_storage import Profile
 
 
@@ -150,7 +150,7 @@ def _save_conv(name_entry, transcript_box, status_lbl, old_name):
         messagebox.showerror("Error", "Name is required.")
         return
 
-    transcript = get_scrolled_text(transcript_box)  # using helper
+    transcript = get_text(transcript_box)  # using helper
     if not transcript:
         messagebox.showerror("Error", "Please paste a transcript.")
         return
