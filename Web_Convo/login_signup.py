@@ -2,9 +2,13 @@ from __future__ import annotations
 from nicegui import ui, app
 from database import supabase
 from auth_utils import auth_manager
+from app import apply_theme
 import os
 
 def login_page() -> None:
+    apply_theme()
+    ui.dark_mode(value=app.storage.user.get('dark_mode', True))
+
     # Auto-login for admins if they have a session cookie
     if not auth_manager.get_user_session(app.storage.user):
         admin_emails = [e.strip() for e in os.environ.get("ADMIN_EMAILS", "").split(",")]
@@ -38,6 +42,9 @@ def login_page() -> None:
         ui.link('Don\'t have an account? Sign up', '/signup').classes('text-sm text-center w-full')
 
 def signup_page() -> None:
+    apply_theme()
+    ui.dark_mode(value=app.storage.user.get('dark_mode', True))
+
     if auth_manager.get_user_session(app.storage.user):
         ui.navigate.to('/')
         return
