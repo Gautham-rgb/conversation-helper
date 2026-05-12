@@ -16,6 +16,7 @@ SUPABASE_SERVICE_KEY: str = os.environ.get("SUPABASE_SERVICE_KEY", "")
 
 # Standard client for users (obeys RLS)
 supabase: Client | None = None
+print(f"DEBUG: Initializing Supabase client with URL: {SUPABASE_URL}")
 if SUPABASE_URL and SUPABASE_KEY:
     try:
         supabase = create_client(SUPABASE_URL, SUPABASE_KEY)

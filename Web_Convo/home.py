@@ -16,32 +16,29 @@ def home() -> None:
         user_email = app.storage.user.get('email')
         admin_emails = [e.strip() for e in os.environ.get("ADMIN_EMAILS", "").split(",")]
         is_admin = user_email in admin_emails
-        
+
         if user_id:
             try:
-                # If admin, fetch everything. Otherwise, fetch restricted list.
                 if is_admin:
                     raw_profs = supabase.table("profiles").select("*").execute().data or []
                 else:
                     raw_profs = get_accessible_profiles(user_id) or []
-                
-                for rp in raw_profs:
-                    # ... (rest of profile conversion logic) ...
-                    p = Profile(rp.get("display_name") or rp.get("name", "Unknown")) #type: ignore
-                p.traits = rp.get("traits", []) #type: ignore
-                p.interests = rp.get("interests", []) #type: ignore
-                p.notes = rp.get("notes", []) #type: ignore
-                p.avoids = rp.get("avoids", []) #type: ignore
+
                 from CLI_convo.profile_storage import Conversation
-                p.prev_conver = [Conversation(c["summary"], c["outcome"], c.get("date")) for c in rp.get("history", [])] #type: ignore
-                supabase_profs[p.name.lower()] = p
-            except Exception as e:
+                for rp in raw_profs:
+                    p = Profile(rp.get("display_name") or rp.get("name", "Unknown")) #type: ignore
+                    p.traits = rp.get("traits", []) #type: ignore
+                    p.interests = rp.get("interests", []) #type: ignore
+                    p.notes = rp.get("notes", []) #type: ignore
+                    p.avoids = rp.get("avoids", []) #type: ignore
+                    p.prev_conver = [Conversation(c["summary"], c["outcome"], c.get("date")) for c in rp.get("history", [])] #type: ignore
+                    supabase_profs[p.name.lower()] = p
+            except Exception:
                 ui.notify("Could not fetch cloud profiles (using local fallback)", type="warning", close_button="OK", timeout=5000)
-                ui.notify("ec")
 
         local_profs = Profile.load_all()
 
-        # Merge profiles, prioritizing Supabase data
+        # Merge profiles, prioritizing Supabase data.
         all_profs = local_profs.copy()
         all_profs.update(supabase_profs)
 
@@ -50,12 +47,13 @@ def home() -> None:
         with ui.row().classes("w-full items-start justify-between gap-4"):
             with ui.column().classes("gap-1"):
                 ui.label("People").classes("text-3xl font-bold")
-                ui.label(f"{len(profs)} profiles · {"Online (Groq)" if ONLINE else "Offline (Gemma)"}").classes("text-slate-400")
+                engine_status = "Online (Groq)" if ONLINE else "Offline (Gemma)"
+                ui.label(f"{len(profs)} profiles - {engine_status}").classes("text-slate-400")
             with ui.row().classes("gap-2"):
                 ui.button("New Profile", icon="person_add", on_click=lambda: ui.navigate.to("/create")).props("color=positive")
                 ui.button("Ask All", icon="voice_over", on_click=lambda: ui.navigate.to("/all_pyfriend")).props("color=success")
                 ui.button("Feedback", icon="rate_review", on_click=lambda: ui.navigate.to("/feedback")).props("color=info")
-        
+
         if not profs:
             with ui.card().classes("w-full bg-[#151b22] p-8 items-center"):
                 ui.icon("person_search").classes("text-5xl text-slate-500")
@@ -70,12 +68,11 @@ def home() -> None:
                         with ui.row().classes("gap-2"):
                             ui.chip(f"{len(p.interests)} interests").props("outline color=blue")
                             ui.chip(f"{len(p.prev_conver)} logs").props("outline color=green")
-                            ui.button(f"Talk about {p.name}", on_click = lambda n=p.name: ui.navigate.to(f"/pyfriend/{p.name}"))
+                            ui.button(f"Talk about {p.name}", on_click=lambda n=p.name: ui.navigate.to(f"/pyfriend/{n}"))
                         if latest:
                             ui.separator().classes("bg-slate-700")
                             ui.label(latest.summary).classes("text-sm text-slate-400 line-clamp-2")
-        
-        # New Debug Overlay (Controlled by app.storage.user['debug_mode'])
+
         debug_overlay({
             "Supabase Raw": raw_profs,
             "Supabase Converted Count": len(supabase_profs),
