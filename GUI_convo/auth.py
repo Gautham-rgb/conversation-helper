@@ -23,16 +23,18 @@ def login_signup_gui():
         try:
             res = auth_manager.supabase.auth.sign_in_with_password({"email": email.get(), "password": password.get()})
             if res.user:
-                # Update the database client with the session
+                print(f"Login success for {res.user.email}")
                 from database import supabase
                 if supabase:
+                    # Explicitly set the token for the client
                     supabase.auth.set_session(res.session.access_token, res.session.refresh_token) #type: ignore
-                
-                print("Login success")
+                    print("DEBUG: Session token set on database client.")
+
                 # Navigate to home
                 from home import home
                 home()
         except Exception as e:
+            print(f"DEBUG: Login error: {e}")
             ttk.Label(frame, text=str(e), bootstyle="danger").pack()
 
     def show_email_verification_screen(email_address):

@@ -32,4 +32,6 @@ if SUPABASE_URL and SUPABASE_SERVICE_KEY:
 
 def is_connected() -> bool:
     """Check if Supabase client is initialized."""
-    return supabase is not None
+    connected = supabase is not None
+    print(f"DEBUG: Supabase connected status: {connected}")
+    return connected
