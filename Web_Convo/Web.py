@@ -39,6 +39,10 @@ def login():
 def signup():
     _lazy_import("login_signup").signup_page()
 
+@ui.page("/verification")
+def verification(email: str = ""):
+    _lazy_import("login_signup").verification_page(email)
+
 @app.get(f'/{GOOGLE_VERIFY_FILE}')
 async def verify_google():
     file_path = os.path.join(os.path.dirname(__file__), GOOGLE_VERIFY_FILE)

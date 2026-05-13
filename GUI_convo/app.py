@@ -25,6 +25,10 @@ def get_text(widget: Any) -> str:
     """Retrieve text from a widget."""
     return _get_tk_widget(widget).get("1.0", "end").strip()
 
+def get_scrolled_text(widget: Any) -> str:
+    """Retrieve text from a ScrolledText or tkinter Text widget."""
+    return get_text(widget)
+
 def set_text(widget: Any, text: str):
     """Replace all text in a widget safely."""
     w = _get_tk_widget(widget)
@@ -34,6 +38,10 @@ def set_text(widget: Any, text: str):
     w.insert("end", text)
     w.config(state=state)
 
+def set_scrolled_text(widget: Any, text: str):
+    """Replace all text in a ScrolledText or tkinter Text widget."""
+    set_text(widget, text)
+
 def append_text(widget: Any, text: str):
     """Append text to a widget safely."""
     w = _get_tk_widget(widget)
@@ -42,6 +50,10 @@ def append_text(widget: Any, text: str):
     w.insert("end", text)
     w.config(state=state)
     w.see("end")
+
+def append_scrolled_text(widget: Any, text: str):
+    """Append text to a ScrolledText or tkinter Text widget."""
+    append_text(widget, text)
 
 def show(page_func: Callable, **kwargs):
     """Clear root and load a new page."""
