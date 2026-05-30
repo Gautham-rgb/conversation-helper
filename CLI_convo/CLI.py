@@ -218,6 +218,10 @@ def menu():
                                ("Notes", p.add_note), ("Avoids", p.add_avoid)]:
                 val = _get_input(f"{field} (comma separated): ")
                 if val: fn(*[x.strip() for x in val.split(",")])
+            
+            persona_info_val = _get_input("Persona Info: ") # New input for persona info
+            if persona_info_val: p.persona_info = persona_info_val
+
             p.save()
             print(p.to_prompt())
 

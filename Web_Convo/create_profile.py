@@ -33,9 +33,10 @@ def profile_form(name: str | None = None) -> None:
                     traits = ui.textarea("Traits", value=", ".join(existing.traits) if existing else "").classes("w-full").props("outlined autogrow")
                     interests = ui.textarea("Interests", value=", ".join(existing.interests) if existing else "").classes("w-full").props("outlined autogrow")
                     notes = ui.textarea("Notes", value=", ".join(existing.notes) if existing else "").classes("w-full").props("outlined autogrow")
+                    persona_info = ui.textarea("Persona Info", value=existing.persona_info if existing and existing.persona_info else "").classes("w-full").props("outlined autogrow", placeholder="e.g., this person is a software engineer interested in open-source projects and often uses technical jargon.")
                     avoids = ui.textarea("Avoids", value=", ".join(existing.avoids) if existing else "").classes("w-full").props("outlined autogrow")
                     ui.button("Save Profile", icon="save", 
-                        on_click=lambda: _save_manual(name, name_input.value, traits.value, interests.value, notes.value, avoids.value) #type: ignore
+                        on_click=lambda: _save_manual(name, name_input.value, traits.value, interests.value, notes.value, persona_info.value, avoids.value) #type: ignore
                     ).props("color=positive")
             with ui.tab_panel(transcript_tab):
                 with ui.card().classes("w-full bg-[#151b22] p-5 gap-4"):
@@ -65,7 +66,7 @@ def _build_rag_for_profile(profile: Profile) -> None:
         ui.notify(f"Failed to build RAG: {e}", type = "negative")
 
 
-def _save_manual(old: str|None, new: str|None, t: str, i: str, n: str, a: str) -> None:
+def _save_manual(old: str|None, new: str|None, t: str, i: str, n: str, persona_info_val: str, a: str) -> None:
     clean = (new or "").strip()
     if not clean:
         ui.notify("Name required.", type="negative")
@@ -76,6 +77,7 @@ def _save_manual(old: str|None, new: str|None, t: str, i: str, n: str, a: str) -
     p.add_trait(*parse_list(t))
     p.add_interest(*parse_list(i))
     p.add_note(*parse_list(n))
+    p.persona_info = persona_info_val # Assign the new persona_info
     p.add_avoid(*parse_list(a))
     
     # 1. Save locally and build RAG (wait for embedding to complete)
@@ -92,7 +94,8 @@ def _save_manual(old: str|None, new: str|None, t: str, i: str, n: str, a: str) -
             "interests": p.interests,
             "avoids": p.avoids,
             "history": [c.to_dict() for c in p.prev_conver],
-            "rag": rag.metadata if rag.metadata else []
+            "rag": rag.metadata if rag.metadata else [],
+            "persona_info": p.persona_info # Include persona_info in SQL data
         }
         supabase.table("profiles").upsert(sql_data, on_conflict="name").execute()
     except Exception as e:

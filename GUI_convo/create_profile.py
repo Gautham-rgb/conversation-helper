@@ -33,9 +33,12 @@ def create_profile(name=None):
 
         entries = {}
         for label, key in [("Traits", "traits"), ("Interests", "interests"),
-                           ("Notes", "notes"), ("Avoids", "avoids")]:
+                           ("Notes", "notes"), ("Persona Info", "persona_info"), ("Avoids", "avoids")]:
             ttk.Label(manual_tab, text=label, bootstyle="secondary").pack(anchor="w", pady=(8, 2))
-            e = ttk.Entry(manual_tab, width=60, font=("Segoe UI", 11))
+            if key == "persona_info":
+                e = tk.Text(manual_tab, height=4, wrap="word", font=("Segoe UI", 11))
+            else:
+                e = ttk.Entry(manual_tab, width=60, font=("Segoe UI", 11))
             e.pack(anchor="w", fill="x")
             entries[key] = e
 
@@ -45,7 +48,10 @@ def create_profile(name=None):
                 entries["traits"].insert(0, ", ".join(p.traits))
                 entries["interests"].insert(0, ", ".join(p.interests))
                 entries["notes"].insert(0, ", ".join(p.notes))
+                if p.persona_info: # Populate persona_info if it exists
+                    set_text(entries["persona_info"], p.persona_info)
                 entries["avoids"].insert(0, ", ".join(p.avoids))
+
 
         ttk.Button(manual_tab, text="Save", bootstyle="success", width=16,
                    command=lambda: _save_manual(name_entry, entries, name)).pack(anchor="w", pady=16)
@@ -127,6 +133,7 @@ def _save_manual(name_entry, entries, old_name):
     p.add_trait(*parse("traits"))
     p.add_interest(*parse("interests"))
     p.add_note(*parse("notes"))
+    p.persona_info = get_text(entries["persona_info"]) # Retrieve persona_info
     p.add_avoid(*parse("avoids"))
     p.save()
 

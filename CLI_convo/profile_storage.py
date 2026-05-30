@@ -17,12 +17,13 @@ class Conversation:
         return {"date": self.date, "summary": self.summary, "outcome": self.outcome}
 
 class Profile:
-    def __init__(self, name, traits=None, notes=None, interests=None, avoids=None):
+    def __init__(self, name, traits=None, notes=None, interests=None, avoids=None, persona_info: Optional[str] = None):
         self.name = name.strip()
         self.traits = traits or []
         self.notes = notes or []
         self.interests = interests or []
         self.avoids = avoids or []
+        self.persona_info = persona_info # New field
         self.prev_conver = []
         self._rag = None
 
@@ -48,6 +49,7 @@ class Profile:
             "notes": self.notes,
             "interests": self.interests,
             "avoids": self.avoids,
+            "persona_info": self.persona_info, # New field
             "history": [c.to_dict() for c in self.prev_conver]
         }
 
@@ -75,7 +77,7 @@ class Profile:
     def load(name):
         raw = Profile.load_all_raw().get(name.lower())
         if not raw: return None
-        p = Profile(raw['name'], raw['traits'], raw['notes'], raw['interests'], raw['avoids'])
+        p = Profile(raw['name'], raw['traits'], raw['notes'], raw['interests'], raw['avoids'], raw.get('persona_info'))
         p.prev_conver = [Conversation(c['summary'], c['outcome'], c.get('date')) for c in raw.get('history', [])]
         return p
 
@@ -87,6 +89,8 @@ class Profile:
 
     def to_prompt(self, query: Optional[str] = None):
         lines = [f"Name: {self.name}"]
+        if self.persona_info: # Include persona_info at the beginning of the prompt
+            lines.append(f"Persona Info: {self.persona_info}")
         for k, v in [("Traits", self.traits), ("Interests", self.interests), ("Notes", self.notes), ("Avoid", self.avoids)]:
             if v: lines.append(f"{k}: {', '.join(v)}")
         
