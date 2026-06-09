@@ -7,17 +7,16 @@ from nicegui import ui
 from ui_parts import back_button, shell
 from CLI_convo.profile_storage import Profile
 from web_ai import complete, transcribe
-from sql_sync import get_rag_data_from_sql
-
+from sql_sync import get_rag_data_from_sql, load_profile_web
 
 @ui.page("/pyfriend/{name}")
 def pyfriend_page(name: str) -> None:
-    p = Profile.load(name)
+    p = load_profile_web(name)
     if not p:
         with shell("Missing"): back_button("/"); ui.label("Profile not found").classes("text-2xl font-bold")
         return
-    
     with shell(f"Ask {p.name}"):
+
         back_button(f"/profile/{p.name}")
         ui.label(f"Ask Pyfriend for {p.name}").classes("text-3xl font-bold")
         ui.label("Speak or type a situation. Pyfriend will focus on this profile's context.").classes("text-slate-400")

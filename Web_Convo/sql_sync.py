@@ -13,7 +13,8 @@ def sync_new_profile(profile_obj: Profile):
         "notes": profile_obj.notes,
         "interests": profile_obj.interests,
         "avoids": profile_obj.avoids,
-        "history": [c.to_dict() for c in profile_obj.prev_conver]
+        "history": [c.to_dict() for c in profile_obj.prev_conver],
+        "persona_info": profile_obj.persona_info,
     }
     
     # Add user_id if authenticated
@@ -25,6 +26,25 @@ def sync_new_profile(profile_obj: Profile):
         supabase.table("profiles").upsert(sql_data, on_conflict="name").execute()
     except Exception as e:
         print(f"Cloud sync failed: {e}")
+
+def load_profile_web(name: str) -> Profile | None:
+    """Fetch profile from Supabase (priority) or local storage."""
+    try:
+        res = supabase.table("profiles").select("*").eq("name", name.lower()).execute()
+        if res.data and res.data[0]:
+            rp = res.data[0]
+            p = Profile(rp.get("display_name") or rp.get("name", "Unknown"))
+            p.traits = rp.get("traits", [])
+            p.notes = rp.get("notes", [])
+            p.interests = rp.get("interests", [])
+            p.avoids = rp.get("avoids", [])
+            p.persona_info = rp.get("persona_info")
+            p.prev_conver = [Conversation(c["summary"], c["outcome"], c.get("date")) for c in rp.get("history", [])]
+            return p
+    except Exception as e:
+        print(f"Cloud load failed for {name}: {e}")
+    
+    return Profile.load(name)
 
 def sync_rag_data_to_sql(name: str, rag_entries: list[dict]):
     """Syncs RAG data (metadata entries) to Supabase rag column."""

@@ -33,7 +33,7 @@ def profile_form(name: str | None = None) -> None:
                     traits = ui.textarea("Traits", value=", ".join(existing.traits) if existing else "").classes("w-full").props("outlined autogrow")
                     interests = ui.textarea("Interests", value=", ".join(existing.interests) if existing else "").classes("w-full").props("outlined autogrow")
                     notes = ui.textarea("Notes", value=", ".join(existing.notes) if existing else "").classes("w-full").props("outlined autogrow")
-                    persona_info = ui.textarea("Persona Info", value=existing.persona_info if existing and existing.persona_info else "").classes("w-full").props("outlined autogrow", placeholder="e.g., this person is a software engineer interested in open-source projects and often uses technical jargon.")
+                    persona_info = ui.textarea("Persona Info", placeholder="e.g., this person is a software engineer interested in open-source projects and often uses technical jargon.", value=existing.persona_info if existing and existing.persona_info else "").classes("w-full").props("outlined autogrow")
                     avoids = ui.textarea("Avoids", value=", ".join(existing.avoids) if existing else "").classes("w-full").props("outlined autogrow")
                     ui.button("Save Profile", icon="save", 
                         on_click=lambda: _save_manual(name, name_input.value, traits.value, interests.value, notes.value, persona_info.value, avoids.value) #type: ignore
@@ -106,7 +106,8 @@ def _save_manual(old: str|None, new: str|None, t: str, i: str, n: str, persona_i
 
 async def _extract(old: str|None, clean: str, transcript: str) -> None:
     if old and old.lower() != clean.lower(): Profile.delete(old)
-    await build_profile(clean, transcript, clean)
+    p = await build_profile(clean, transcript, clean)
+    sync_new_profile(p)
 
 def _save_from_transcript(old: str|None, new: str|None, transcript: str|None) -> None:
     clean = (new or "").strip()

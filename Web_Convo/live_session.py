@@ -3,11 +3,12 @@ import asyncio
 from nicegui import ui
 from ui_parts import back_button, shell
 from CLI_convo.profile_storage import Profile
+from sql_sync import load_profile_web
 from suggestions import suggest
 
 @ui.page("/live/{name}")
 def live_session(name: str) -> None:
-    p = Profile.load(name)
+    p = load_profile_web(name)
     if not p:
         with shell("Missing"): back_button("/"); ui.label("Profile not found").classes("text-2xl font-bold")
         return

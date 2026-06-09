@@ -1,16 +1,12 @@
-import asyncio
-
 from nicegui import ui
-from sql_sync import sync_new_profile
+from sql_sync import sync_new_profile, load_profile_web
 from ui_parts import back_button, shell
 from CLI_convo.profile_storage import Profile
 from profile_builder import build_profile
 
-
-
 @ui.page("/update/{name}")
 def update_profile(name: str) -> None:
-    profile = Profile.load(name)
+    profile = load_profile_web(name)
     if not profile:
         with shell("Profile Missing"):
             back_button("/")
@@ -18,6 +14,7 @@ def update_profile(name: str) -> None:
         return
 
     with shell(f"Update: {profile.name}"):
+
         back_button(f"/profile/{profile.name}")
         ui.label(f"Update {profile.name}").classes("text-3xl font-bold")
         ui.label("Paste a transcript and the app will extract traits, interests, notes, and avoids.").classes(

@@ -2,11 +2,11 @@ from nicegui import ui
 from ui_parts import back_button, shell
 from app import chip_list
 from CLI_convo.profile_storage import Profile
-from sql_sync import delete_profile_from_sql
+from sql_sync import delete_profile_from_sql, load_profile_web
 
 @ui.page("/profile/{name}")
 def profile_page(name: str) -> None:
-    p = Profile.load(name)
+    p = load_profile_web(name)
     if not p:
         with shell("Missing"): back_button("/"); ui.label("Not found").classes("text-2xl font-bold")
         return

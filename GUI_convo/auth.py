@@ -1,5 +1,5 @@
 import ttkbootstrap as ttk
-from app import root
+from app import root, show
 from auth_utils import auth_manager
 
 def login_signup_gui():
@@ -32,7 +32,7 @@ def login_signup_gui():
 
                 # Navigate to home
                 from home import home
-                home()
+                show(home)
         except Exception as e:
             print(f"DEBUG: Login error: {e}")
             ttk.Label(frame, text=str(e), bootstyle="danger").pack()
