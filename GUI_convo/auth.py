@@ -1,6 +1,6 @@
 import ttkbootstrap as ttk
 from app import root, show
-from auth_utils import auth_manager
+from core_systems.auth_utils import auth_manager
 
 def login_signup_gui():
     for w in root.winfo_children():

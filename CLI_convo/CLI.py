@@ -7,7 +7,7 @@ import sounddevice as sd
 import sys
 # Add root to path to import auth_utils
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from auth_utils import auth_manager
+from core_systems.auth_utils import auth_manager
 from CLI_convo.profile_storage import Profile
 from CLI_convo.ai_part import suggest
 from CLI_convo.offline import (

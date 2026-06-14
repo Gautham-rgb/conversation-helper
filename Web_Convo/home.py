@@ -5,7 +5,7 @@ from ui_parts import shell, debug_overlay
 from CLI_convo.offline import ONLINE
 from CLI_convo.profile_storage import Profile
 from tutorial import start_tutorial
-from database_schema import get_accessible_profiles
+from core_systems.database_schema import get_accessible_profiles
 from database import supabase
 
 def home() -> None:

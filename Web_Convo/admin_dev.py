@@ -2,7 +2,7 @@ from __future__ import annotations
 from nicegui import ui, app
 from ui_parts import back_button, shell
 from database import admin_supabase
-from auth_utils import auth_manager
+from core_systems.auth_utils import auth_manager
 
 @ui.page("/admin/dev")
 def admin_dev_page() -> None:

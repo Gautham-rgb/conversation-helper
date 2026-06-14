@@ -4,7 +4,7 @@ from ui_parts import back_button, shell
 from typing import cast, Any
 import os
 from database import supabase
-from auth_utils import auth_manager
+from core_systems.auth_utils import auth_manager
 from admin_dev import admin_dev_page
 
 def _load_feedback() -> list[dict[str, Any]]:
