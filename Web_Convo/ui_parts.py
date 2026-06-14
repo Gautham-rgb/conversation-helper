@@ -40,32 +40,31 @@ def shell(title: str, on_tutorial: Optional[Callable] = None):
         else:
             dark.disable()
 
-    with ui.header(elevated=False).classes("bg-[#141a20]/95 border-b border-slate-700/60 px-5 py-3"):
+    with ui.header(elevated=False).classes("bg-zinc-900/80 backdrop-blur-md border-b border-zinc-800 px-6 py-3"):
         with ui.row().classes("w-full items-center justify-between gap-3"):
-            with ui.row().classes("items-center gap-3"):
-                ui.icon("forum").classes("text-blue-400 text-2xl")
-                ui.label("Echo - Clear").classes("text-lg font-semibold")
-                ui.switch("Dark Mode", value=dark.value, on_change=set_dark_mode)
-
             with ui.row().classes("items-center gap-4"):
-                # Only render the button if a valid callable is passed
+                ui.icon("forum", color="primary").classes("text-3xl")
+                ui.label("Echo Clear").classes("text-xl font-bold tracking-tight text-zinc-100")
+                ui.switch("Dark Mode", value=dark.value, on_change=set_dark_mode).props("dense")
+
+            with ui.row().classes("items-center gap-3"):
                 if on_tutorial is not None:
                     ui.button('Tutorial', on_click=on_tutorial) \
-                        .props('flat color=white icon=help_outline') \
-                        .classes('text-sm') 
+                        .props('flat color=zinc-400 icon=help_outline') \
+                        .classes('text-xs font-medium uppercase tracking-wider') 
                 
                 if app.storage.user.get('authenticated'):
                     async def logout():
                         from database import supabase
                         await supabase.auth.sign_out() #type: ignore
                         app.storage.user.clear()
-                        ui.notify("Logged out")
+                        ui.notify("Logged out", type="info")
                         ui.navigate.to("/login")
-                    ui.button(icon="logout", on_click=logout).props("flat color=white").classes("text-sm")
+                    ui.button(icon="logout", on_click=logout).props("flat color=zinc-400").classes("text-sm")
 
-                ui.label(title).classes("text-sm text-slate-400")
+                ui.label(title).classes("text-xs font-medium uppercase tracking-widest text-zinc-500 ml-2")
                 
-    with ui.column().classes("w-full max-w-6xl mx-auto px-5 py-6 gap-5") as content:
+    with ui.column().classes("w-full max-w-5xl mx-auto px-6 py-10 gap-8") as content:
         yield content
 
 def back_button(target: str = "/", label: str = "Back") -> ui.button:

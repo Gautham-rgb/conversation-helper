@@ -24,14 +24,44 @@ No more cryptic Python crashes. When things go sideways, our custom **Error Engi
 ### Installation
 Clone the repository and step into a cleaner workflow:
 ```bash
-git clone https://github.com
+git clone https://github.com/your-repo-path
 cd conversation-helper
 pip install -r requirements.txt
-python "import os;os.environ['KERAS_BACKEND'] = 'torch'"
+python -c "import os;os.environ['KERAS_BACKEND'] = 'torch'"
+```
+
+### 🔑 Configuration
+The application requires several API keys to function. You can provide these in two ways:
+
+#### Option 1: Using a `.env` file (Recommended)
+Create a file named `.env` in the root directory and add your keys:
+```env
+GOOGLE_API_KEY=your_gemini_api_key
+GROQ_API_KEY=your_groq_api_key
+SUPABASE_URL=your_supabase_url
+SUPABASE_KEY=your_supabase_key
+SUPABASE_SERVICE_KEY=your_service_role_key
+ADMIN_EMAILS=admin1@example.com,admin2@example.com
+```
+
+#### Option 2: Using Environment Variables
+Alternatively, you can export them in your terminal before running the app:
+```bash
+export GOOGLE_API_KEY="your_gemini_api_key"
+export GROQ_API_KEY="your_groq_api_key"
+export SUPABASE_URL="your_supabase_url"
+export SUPABASE_KEY="your_supabase_key"
+```
+
+### 🚀 Running the App
+```bash
+# Start the GUI interface
 python GUI_convo/GUI.py
-#or if you want the web interface
+
+# Start the Web interface
 python Web_Convo/Web.py
-#or if you want to look at the black box that shall not be touched
+
+# Start the CLI interface
 python CLI_convo/CLI.py
 ```
 ---

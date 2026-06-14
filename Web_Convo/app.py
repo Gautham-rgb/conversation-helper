@@ -10,90 +10,74 @@ PROJECT_DIR = APP_DIR.parent
 if str(PROJECT_DIR) not in sys.path: sys.path.insert(0, str(PROJECT_DIR))
 
 def apply_theme() -> None:
-    ui.colors(primary="#3b82f6", secondary="#64748b", accent="#22c55e", positive="#22c55e", negative="#ef4444", warning="#f59e0b", info="#38bdf8")
-    ui.query("body").classes("bg-[#101418] text-slate-100")
+    ui.colors(
+        primary="#3b82f6",    # Sapphire Blue
+        secondary="#71717a",  # Zinc 500
+        accent="#6366f1",     # Indigo
+        positive="#10b981",   # Emerald
+        negative="#ef4444",   # Red
+        warning="#f59e0b",    # Amber
+        info="#0ea5e9"        # Sky
+    )
+    ui.query("body").classes("bg-[#09090b] text-zinc-100")
     ui.add_head_html("""
         <style>
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+            
             body {
-                font-family: Inter, sans-serif;
-                transition: background-color 160ms ease, color 160ms ease;
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+                transition: background-color 0.3s ease;
             }
 
             body.body--dark {
-                background-color: #101418 !important;
-                color: #f1f5f9 !important;
+                background-color: #09090b !important;
+                color: #fafafa !important;
             }
 
             body:not(.body--dark) {
-                background-color: #f8fafc !important;
-                color: #0f172a !important;
+                background-color: #f4f4f5 !important;
+                color: #18181b !important;
             }
 
+            /* Glassmorphism Cards */
             .q-card {
-                border: 1px solid rgba(148, 163, 184, 0.18);
-                box-shadow: none;
+                background: rgba(24, 24, 27, 0.6) !important;
+                backdrop-filter: blur(12px);
+                border: 1px solid rgba(63, 63, 70, 0.4) !important;
+                border-radius: 16px !important;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
             }
 
-            body:not(.body--dark) .q-card,
-            body:not(.body--dark) .q-table__container,
-            body:not(.body--dark) .q-menu,
-            body:not(.body--dark) .bg-\\[\\#151b22\\] {
-                background-color: #ffffff !important;
-                color: #0f172a !important;
+            body:not(.body--dark) .q-card {
+                background: rgba(255, 255, 255, 0.7) !important;
+                border: 1px solid rgba(229, 231, 235, 0.8) !important;
+                color: #18181b !important;
             }
 
-            body:not(.body--dark) .bg-\\[\\#101418\\],
-            body:not(.body--dark) .bg-slate-900 {
-                background-color: #f1f5f9 !important;
-                color: #0f172a !important;
+            /* Modern Inputs */
+            .q-field--outlined .q-field__control:before { 
+                border-color: rgba(63, 63, 70, 0.4) !important; 
+            }
+            .q-field__native, .q-field__input {
+                color: inherit !important;
+                font-weight: 400 !important;
+            }
+            
+            /* Buttons */
+            .q-btn {
+                border-radius: 8px !important;
+                text-transform: none !important;
+                font-weight: 500 !important;
             }
 
-            body:not(.body--dark) .q-header {
-                background-color: rgba(255, 255, 255, 0.95) !important;
-                border-bottom-color: #e2e8f0 !important;
-                color: #0f172a !important;
+            /* Custom Scrollbar */
+            ::-webkit-scrollbar { width: 8px; }
+            ::-webkit-scrollbar-track { background: transparent; }
+            ::-webkit-scrollbar-thumb { 
+                background: #27272a; 
+                border-radius: 10px; 
             }
-
-            body:not(.body--dark) .text-white,
-            body:not(.body--dark) .text-slate-100,
-            body:not(.body--dark) .text-slate-200 {
-                color: #0f172a !important;
-            }
-
-            body:not(.body--dark) .text-slate-300,
-            body:not(.body--dark) .text-slate-400,
-            body:not(.body--dark) .text-slate-500 {
-                color: #64748b !important;
-            }
-
-            body:not(.body--dark) .border-slate-700,
-            body:not(.body--dark) .border-slate-800,
-            body:not(.body--dark) .border-slate-800\\/50,
-            body:not(.body--dark) .border-slate-700\\/60 {
-                border-color: #e2e8f0 !important;
-            }
-
-            .q-field--outlined .q-field__control:before { border-color: rgba(148, 163, 184, 0.35); }
-            .q-field__native,
-            .q-field__input,
-            .q-field__prefix,
-            .q-field__suffix {
-                color: #f8fafc !important;
-            }
-            body:not(.body--dark) .q-field__native,
-            body:not(.body--dark) .q-field__input,
-            body:not(.body--dark) .q-field__prefix,
-            body:not(.body--dark) .q-field__suffix {
-                color: #0f172a !important;
-            }
-            .q-field__native::placeholder,
-            .q-field__input::placeholder {
-                color: #94a3b8 !important;
-                opacity: 1;
-            }
-            .q-field__label {
-                color: #94a3b8 !important;
-            }
+            ::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
         </style>
     """)
 
