@@ -36,7 +36,7 @@ python -c "import os;os.environ['KERAS_BACKEND'] = 'torch'"
 ### 🔑 Setting Up Your Keys
 The app needs a few API keys to work its magic. You've got two ways to do this:
 
-#### Option 1: The `.env` file (The "Set it and Forget it" way)
+#### Option 1
 Create a `.env` file in the root directory. Just copy-paste this and add your keys:
 ```env
 GOOGLE_API_KEY=your_gemini_api_key
@@ -47,7 +47,7 @@ SUPABASE_SERVICE_KEY=your_service_role_key
 ADMIN_EMAILS=admin1@example.com,admin2@example.com
 ```
 
-#### Option 2: Environment Variables (The "Quick & Dirty" way)
+#### Option 2
 If you're just testing things out, you can export them directly in your terminal:
 ```bash
 export GOOGLE_API_KEY="your_gemini_api_key"
@@ -72,5 +72,5 @@ python CLI_convo/CLI.py
 ---
 
 ### 👋 Get in Touch
-Found a bug? Have a brilliant idea to make this even better? We'd love to hear from you!
+Found a bug? Have a brilliant idea to make this even better? I'd love to hear from you!
 Reach out to: [kaarthikgautham0@gmail.com](mailto:kaarthikgautham0@gmail.com) or [gautitheexplorer@gmail.com](mailto:gautitheexplorer@gmail.com)
