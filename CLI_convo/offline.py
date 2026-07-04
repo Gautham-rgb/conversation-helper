@@ -22,7 +22,7 @@ if ONLINE:
 else:
     groq_client = None
 
-GROQ_CHAT_MODEL = "llama-3.3-70b-versatile"
+GROQ_CHAT_MODEL = "openai/gpt-oss-120b"
 GROQ_WHISPER_MODEL = "whisper-large-v3-turbo"
 CHAT_MODEL = GROQ_CHAT_MODEL
 WHISPER_MODEL = GROQ_WHISPER_MODEL

@@ -3,7 +3,7 @@ from pathlib import Path
 from groq import AsyncGroq, Groq
 from CLI_convo.config import api_key
 
-CHAT_MODEL    = "llama-3.3-70b-versatile"
+CHAT_MODEL = "openai/gpt-oss-120b"
 WHISPER_MODEL = "whisper-large-v3-turbo"
 
 def _require_api_key() -> str:

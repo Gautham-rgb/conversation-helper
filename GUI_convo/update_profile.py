@@ -18,7 +18,7 @@ async def _build_profile_async(name: str, transcript: str, speaker: str = "") ->
         client = AsyncGroq(api_key=api_key)
         sys_msg = extract_system + (f"\nFOCUS ON: {speaker}" if speaker else "")
         response = await client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="openai/gpt-oss-120b",
             messages=[
                 {"role": "system", "content": sys_msg},
                 {"role": "user", "content": f"Transcript:\n{transcript}"}
