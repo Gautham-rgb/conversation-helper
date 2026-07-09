@@ -1,6 +1,6 @@
 from __future__ import annotations
 from nicegui import app, ui
-from ui_parts import back_button, shell
+from ui_parts import back_button, logout_user, shell
 from typing import cast, Any
 import os
 from database import supabase
@@ -90,7 +90,5 @@ def _show_login_form():
             ui.label('Only authorized accounts can access this area.').classes('text-sm text-slate-400 mb-4')
             ui.navigate.to('/login')
 
-def _logout():
-    auth_manager.set_user_session(app.storage.user, False)
-    app.storage.user['email'] = None
-    ui.navigate.to('/')
+async def _logout():
+    await logout_user()

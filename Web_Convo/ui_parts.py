@@ -1,7 +1,25 @@
 from contextlib import contextmanager
+from inspect import isawaitable
 from nicegui import ui, app
 from app import apply_theme
 from typing import Callable, Optional, Any
+
+async def logout_user() -> None:
+    """Clear both Supabase and NiceGUI session state."""
+    dark_mode = app.storage.user.get('dark_mode', True)
+
+    try:
+        from database import supabase
+        result = supabase.auth.sign_out() #type: ignore
+        if isawaitable(result):
+            await result
+    except Exception as exc:
+        print(f"Supabase sign out failed: {exc}")
+
+    app.storage.user.clear()
+    app.storage.user['dark_mode'] = dark_mode
+    ui.notify("Logged out", type="info")
+    ui.navigate.to("/login")
 
 def debug_overlay(data: dict[str, Any]):
     """
@@ -54,13 +72,7 @@ def shell(title: str, on_tutorial: Optional[Callable] = None):
                         .classes('text-xs font-medium uppercase tracking-wider') 
                 
                 if app.storage.user.get('authenticated'):
-                    async def logout():
-                        from database import supabase
-                        await supabase.auth.sign_out() #type: ignore
-                        app.storage.user.clear()
-                        ui.notify("Logged out", type="info")
-                        ui.navigate.to("/login")
-                    ui.button(icon="logout", on_click=logout).props("flat color=zinc-400").classes("text-sm")
+                    ui.button(icon="logout", on_click=logout_user).props("flat color=zinc-400").classes("text-sm")
 
                 ui.label(title).classes("text-xs font-medium uppercase tracking-widest text-zinc-500 ml-2")
                 

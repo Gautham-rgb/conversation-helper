@@ -1,7 +1,7 @@
 from __future__ import annotations
 from nicegui import ui, app
 from database import supabase
-from auth_utils import auth_manager
+from core_systems.auth_utils import auth_manager
 from app import apply_theme
 import os
 from urllib.parse import quote
