@@ -1,0 +1,20 @@
+name: Supabase Pinger
+
+on:
+  schedule:
+    - cron: '0 9 * * 1,4'
+  workflow_dispatch:
+
+jobs:
+  ping-db:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Ping Supabase REST API
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          curl -i -X GET "${{ env.SUPABASE_URL }}/rest/v1/" \
+            -H "apikey: ${{ env.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ env.SUPABASE_ANON_KEY }}"
